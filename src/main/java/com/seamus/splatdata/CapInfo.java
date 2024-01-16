@@ -8,16 +8,18 @@ public class CapInfo {
     public int respawnTimeTicks = 0;
     public GameType respawnGamemode = GameType.SURVIVAL;
     public String deathMessage = "";
-    public int team = -1;
+    public String team = "";
     public boolean inMatch = false;
     public lobbyStates lobbyStatus = lobbyStates.out;
+    public int preferredColor;
     public CompoundTag writeNBT(CompoundTag compoundTag) {
         compoundTag.putInt("RespawnTicks",respawnTimeTicks);
         compoundTag.putInt("RespawnGamemode", respawnGamemode.getId());
         compoundTag.putString("deathMessage", deathMessage);
-        compoundTag.putInt("team", team);
+        compoundTag.putString("team", team);
         compoundTag.putBoolean("inMatch", inMatch);
         compoundTag.putInt("lobbyStatus", lobbyStatus.ordinal());
+        compoundTag.putInt("prefColor", preferredColor);
         return compoundTag;
     }
 
@@ -25,8 +27,9 @@ public class CapInfo {
         respawnTimeTicks = nbt.getInt("RespawnTicks");
         respawnGamemode = GameType.byId(nbt.getInt("RespawnGamemode"));
         deathMessage = nbt.getString("deathMessage");
-        team = nbt.getInt("team");
+        team = nbt.getString("team");
         inMatch = nbt.getBoolean("inMatch");
         lobbyStatus = lobbyStates.values()[nbt.getInt("lobbyStatus")];
+        preferredColor = nbt.getInt("prefColor");
     }
 }

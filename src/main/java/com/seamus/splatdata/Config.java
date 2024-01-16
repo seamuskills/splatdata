@@ -26,9 +26,11 @@ public class Config {
     public static class Data{
         public static ForgeConfigSpec.DoubleValue respawnTime;
         public static ForgeConfigSpec.ConfigValue<String> stageName;
+        public static ForgeConfigSpec.IntValue matchTime;
         public static void init(ForgeConfigSpec.Builder builder){
             respawnTime = builder.comment("How long the respawn time is (in seconds)").defineInRange("splatcraftdata.respawntime", 7.0f ,0.0d, Double.MAX_VALUE);
             stageName = builder.comment("id of the /stage stage used for the lobby").define("splatcraftdata.stageName","s3Lobby");
+            matchTime = builder.comment("How long (in seconds) a match should last").defineInRange("splatcraftdata.matchTime", 180, 1, Integer.MAX_VALUE);
         }
     }
 }

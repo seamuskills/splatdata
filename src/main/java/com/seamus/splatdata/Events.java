@@ -14,6 +14,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -54,6 +55,14 @@ public class Events {
     public static void attachCaps(AttachCapabilitiesEvent<Entity> event){
         if (event.getObject() instanceof Player)
             event.addCapability(new ResourceLocation("splatdata", "data"), new Capabilities());
+    }
+
+    @SubscribeEvent
+    public static void attachWorldCaps(AttachCapabilitiesEvent<Level> event){
+        if (event.getObject().dimension() != Level.OVERWORLD){
+            return;
+        }
+        event.addCapability(new ResourceLocation("splatdata", "leveldata"), new WorldCaps());
     }
 
     @SubscribeEvent
