@@ -2,6 +2,9 @@ package com.seamus.splatdata;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.GameType;
+import net.splatcraft.forge.util.ColorUtils;
+
+import java.util.UUID;
 
 public class CapInfo {
     public enum lobbyStates{out, notReady, ready, spectator}
@@ -9,15 +12,15 @@ public class CapInfo {
     public GameType respawnGamemode = GameType.SURVIVAL;
     public String deathMessage = "";
     public String team = "";
-    public boolean inMatch = false;
     public lobbyStates lobbyStatus = lobbyStates.out;
-    public int preferredColor;
+    public int preferredColor = ColorUtils.getRandomStarterColor();
+    public UUID match = null;
     public CompoundTag writeNBT(CompoundTag compoundTag) {
         compoundTag.putInt("RespawnTicks",respawnTimeTicks);
         compoundTag.putInt("RespawnGamemode", respawnGamemode.getId());
         compoundTag.putString("deathMessage", deathMessage);
         compoundTag.putString("team", team);
-        compoundTag.putBoolean("inMatch", inMatch);
+        if (match != null) {compoundTag.putUUID("matchid", match);}
         compoundTag.putInt("lobbyStatus", lobbyStatus.ordinal());
         compoundTag.putInt("prefColor", preferredColor);
         return compoundTag;
@@ -28,8 +31,12 @@ public class CapInfo {
         respawnGamemode = GameType.byId(nbt.getInt("RespawnGamemode"));
         deathMessage = nbt.getString("deathMessage");
         team = nbt.getString("team");
-        inMatch = nbt.getBoolean("inMatch");
+        if (nbt.contains("matchid")){ match = nbt.getUUID("matchid");}else{match = null;}
         lobbyStatus = lobbyStates.values()[nbt.getInt("lobbyStatus")];
         preferredColor = nbt.getInt("prefColor");
+    }
+
+    public boolean inMatch(){
+        return match != null;
     }
 }

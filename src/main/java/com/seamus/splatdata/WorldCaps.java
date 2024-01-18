@@ -1,7 +1,9 @@
 package com.seamus.splatdata;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.capabilities.Capability;
@@ -32,6 +34,10 @@ public class WorldCaps implements ICapabilityProvider, INBTSerializable<Compound
     {
         return level.getCapability(CAPABILITY).orElseThrow(IllegalStateException::new);
     }
+
+//    public static WorldInfo get(MinecraftServer server){
+//        return get(server.getLevel(Level.OVERWORLD));
+//    }
 
     @Override
     public CompoundTag serializeNBT() {

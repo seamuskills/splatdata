@@ -1,8 +1,7 @@
 package com.seamus.splatdata;
 
-import com.seamus.splatdata.commands.ReadyCommand;
-import com.seamus.splatdata.commands.SpectateCommand;
-import com.seamus.splatdata.commands.UnreadyCommand;
+import com.seamus.splatdata.commands.*;
+import cpw.mods.modlauncher.serviceapi.ILaunchPluginService;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -24,8 +23,10 @@ import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.server.ServerLifecycleHooks;
 import net.splatcraft.forge.data.Stage;
 import net.splatcraft.forge.data.capabilities.saveinfo.SaveInfoCapability;
 import net.splatcraft.forge.registries.SplatcraftCapabilities;
@@ -41,9 +42,9 @@ public class Events {
 
     @SubscribeEvent
     public static void registerCommand(RegisterCommandsEvent event){
-        new ReadyCommand(event.getDispatcher());
-        new UnreadyCommand(event.getDispatcher());
-        new SpectateCommand(event.getDispatcher());
+        new SpawnCommand(event.getDispatcher());
+        new RoomCommand(event.getDispatcher());
+        new ChangePrefColorCommand(event.getDispatcher());
     }
 
     @SubscribeEvent
@@ -62,14 +63,37 @@ public class Events {
         if (event.getObject().dimension() != Level.OVERWORLD){
             return;
         }
-        event.addCapability(new ResourceLocation("splatdata", "leveldata"), new WorldCaps());
+        WorldCaps caps = new WorldCaps();
+        event.addCapability(new ResourceLocation("splatdata", "leveldata"), caps);
+        WorldInfo info = caps.getCapability(WorldCaps.CAPABILITY).orElseThrow(NullPointerException::new);
+
+        try{
+            info.owner = event.getObject();
+        }catch(NullPointerException npe){
+            System.out.println("oops! all errors!");
+        }
+    }
+
+    @SubscribeEvent
+    public static void serverTick(TickEvent.ServerTickEvent event){
+        if (event.phase == TickEvent.Phase.START){
+            return;
+        }
+        ServerLevel level = ServerLifecycleHooks.getCurrentServer().getLevel(Level.OVERWORLD);
+        if (level == null) return;
+        WorldInfo info = WorldCaps.get(level);
+        for (Match match : info.activeMatches.values()){
+            match.update();
+        }
+    }
+
+    @SubscribeEvent
+    public static void serverStart(ServerStartingEvent event){
+        lobby = SaveInfoCapability.get(event.getServer()).getStages().get(Config.Data.stageName.get());
     }
 
     @SubscribeEvent
     public static void playerTick(TickEvent.PlayerTickEvent event){
-        if (lobby == null && event.player.getServer() != null){
-            lobby = SaveInfoCapability.get(event.player.getServer()).getStages().get(Config.Data.stageName.get());
-        }
         if (event.phase == TickEvent.Phase.START)
             deathPos.put(event.player.getUUID(), new double[]{event.player.position().x, event.player.position().y, event.player.position().z, event.player.getXRot(), event.player.getYHeadRot()});
         if (event.player.level.isClientSide || event.phase == (TickEvent.Phase.END)){
@@ -77,20 +101,29 @@ public class Events {
         }
         if (Capabilities.hasCapability(event.player)){
             CapInfo capInfo = Capabilities.get(event.player);
+            WorldInfo worldCaps = WorldCaps.get(event.player.level);
+
+            if (!(worldCaps.activeMatches.containsKey(capInfo.match)) && capInfo.inMatch()){
+                capInfo.match = null;
+                BlockPos spawn = WorldInfo.getSpawn((ServerPlayer)event.player);
+                event.player.teleportTo(spawn.getX(), spawn.getY(), spawn.getZ());
+                event.player.sendMessage(new TextComponent("A communication error has occurred.").withStyle(ChatFormatting.RED), event.player.getUUID());
+                capInfo.lobbyStatus = CapInfo.lobbyStates.out;
+            }
 
             //lobby code
-            if (lobby != null){
-                if (new AABB(lobby.cornerA, lobby.cornerB).expandTowards(1, 1, 1).contains(event.player.position())){
-                    if (capInfo.lobbyStatus == CapInfo.lobbyStates.out) {
-                        capInfo.lobbyStatus = CapInfo.lobbyStates.notReady;
-                        event.player.sendMessage(new TextComponent("[ Welcome to the lobby! You have been marked as ").withStyle(ChatFormatting.DARK_GREEN).append(new TextComponent("not ready").withStyle(ChatFormatting.DARK_RED).append(new TextComponent(" ]").withStyle(ChatFormatting.DARK_GREEN))), event.player.getUUID());
-                    }
-                }else{
-                    if (capInfo.lobbyStatus != CapInfo.lobbyStates.out)
-                        event.player.sendMessage(new TextComponent("[ You have left the lobby ]").withStyle(ChatFormatting.DARK_RED), event.player.getUUID());
-                    capInfo.lobbyStatus = CapInfo.lobbyStates.out;
-                }
-            }
+//            if (lobby != null){
+//                if (new AABB(lobby.cornerA, lobby.cornerB).expandTowards(1, 1, 1).contains(event.player.position())){
+//                    if (capInfo.lobbyStatus == CapInfo.lobbyStates.out) {
+//                        capInfo.lobbyStatus = CapInfo.lobbyStates.notReady;
+//                        event.player.sendMessage(new TextComponent("[ Welcome to the lobby! You have been marked as ").withStyle(ChatFormatting.DARK_GREEN).append(new TextComponent("not ready").withStyle(ChatFormatting.DARK_RED).append(new TextComponent(" ]").withStyle(ChatFormatting.DARK_GREEN))), event.player.getUUID());
+//                    }
+//                }else{
+//                    if (capInfo.lobbyStatus != CapInfo.lobbyStates.out)
+//                        event.player.sendMessage(new TextComponent("[ You have left the lobby ]").withStyle(ChatFormatting.DARK_RED), event.player.getUUID());
+//                    capInfo.lobbyStatus = CapInfo.lobbyStates.out;
+//                }
+//            }
 
             //respawn timer code
             if (capInfo.respawnTimeTicks >= 0) {
