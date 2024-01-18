@@ -67,7 +67,7 @@ public class Match {
         caps.lobbyStatus = CapInfo.lobbyStates.out;
         caps.match = null;
         if (players.isEmpty()){
-            WorldCaps.get(p.getLevel()).activeMatches.remove(this);
+            WorldCaps.get(p.getLevel()).activeMatches.remove(this.id);
         }
     }
 
