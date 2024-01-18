@@ -1,7 +1,6 @@
 package com.seamus.splatdata.commands;
 
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.seamus.splatdata.*;
@@ -9,15 +8,12 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
-import net.minecraft.commands.synchronization.ArgumentTypes;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.server.ServerLifecycleHooks;
-import org.apache.logging.log4j.core.jmx.Server;
 
 import java.util.ArrayList;
 
@@ -44,7 +40,7 @@ public class RoomCommand {
         }
         if (level != null) {
             WorldInfo worldCaps = WorldCaps.get(level);
-            Match created = new Match("test", new ArrayList<Player>(), level);
+            Match created = new Match("test", new ArrayList<>(), level);
             created.stalk((ServerPlayer)command.getSource().getEntity());
             worldCaps.activeMatches.put(created.id, created);
 

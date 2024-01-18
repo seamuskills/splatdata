@@ -5,7 +5,6 @@ import com.seamus.splatdata.CapInfo;
 import com.seamus.splatdata.Capabilities;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.entity.player.Player;
 import net.splatcraft.forge.commands.arguments.InkColorArgument;

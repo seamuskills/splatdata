@@ -1,24 +1,18 @@
 package com.seamus.splatdata;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.TeamcityTestReporter;
-import net.minecraft.nbt.*;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.server.ServerLifecycleHooks;
 import net.splatcraft.forge.data.Stage;
 import net.splatcraft.forge.data.capabilities.saveinfo.SaveInfoCapability;
 import net.splatcraft.forge.util.ColorUtils;
-import org.apache.logging.log4j.core.jmx.Server;
 
-import java.lang.reflect.Array;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 public class Match {
     public int timeLeft = 0;
@@ -28,7 +22,7 @@ public class Match {
     public List<String> teams;
     public UUID id;
 
-    public String stageID = "";
+    public String stageID;
     public ServerLevel level;
     public boolean inProgress;
     public Match(String stageid, ArrayList<Player> p, ServerLevel l, UUID matchid){

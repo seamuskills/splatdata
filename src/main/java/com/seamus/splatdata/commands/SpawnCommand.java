@@ -9,8 +9,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.server.ServerLifecycleHooks;
 
 public class SpawnCommand {
     public SpawnCommand(CommandDispatcher<CommandSourceStack> dispatcher){
@@ -28,7 +26,7 @@ public class SpawnCommand {
                 Match match = worldCaps.activeMatches.get(playerCaps.match);
                 if (match.inProgress) {
                     match.excommunicate((ServerPlayer) Command.getSource().getEntity());
-                    ((ServerPlayer) Command.getSource().getEntity()).sendMessage(new TextComponent("You have left the room you were in due to teleporting to spawn!").withStyle(ChatFormatting.RED), ((ServerPlayer)Command.getSource().getEntity()).getUUID());
+                    Command.getSource().getEntity().sendMessage(new TextComponent("You have left the room you were in due to teleporting to spawn!").withStyle(ChatFormatting.RED), Command.getSource().getEntity().getUUID());
                 }
             }
             return 0;

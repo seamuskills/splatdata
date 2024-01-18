@@ -1,7 +1,8 @@
 package com.seamus.splatdata;
 
-import com.seamus.splatdata.commands.*;
-import cpw.mods.modlauncher.serviceapi.ILaunchPluginService;
+import com.seamus.splatdata.commands.ChangePrefColorCommand;
+import com.seamus.splatdata.commands.RoomCommand;
+import com.seamus.splatdata.commands.SpawnCommand;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -15,7 +16,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
@@ -27,18 +27,13 @@ import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.server.ServerLifecycleHooks;
-import net.splatcraft.forge.data.Stage;
-import net.splatcraft.forge.data.capabilities.saveinfo.SaveInfoCapability;
-import net.splatcraft.forge.registries.SplatcraftCapabilities;
 
 import java.util.HashMap;
 import java.util.UUID;
 
 @Mod.EventBusSubscriber(modid="splatdata")
 public class Events {
-    private final static HashMap<UUID, double[]> deathPos = new HashMap<UUID, double[]>();
-
-    private static Stage lobby;
+    private final static HashMap<UUID, double[]> deathPos = new HashMap<>();
 
     @SubscribeEvent
     public static void registerCommand(RegisterCommandsEvent event){
@@ -88,11 +83,6 @@ public class Events {
     }
 
     @SubscribeEvent
-    public static void serverStart(ServerStartingEvent event){
-        lobby = SaveInfoCapability.get(event.getServer()).getStages().get(Config.Data.stageName.get());
-    }
-
-    @SubscribeEvent
     public static void playerTick(TickEvent.PlayerTickEvent event){
         if (event.phase == TickEvent.Phase.START)
             deathPos.put(event.player.getUUID(), new double[]{event.player.position().x, event.player.position().y, event.player.position().z, event.player.getXRot(), event.player.getYHeadRot()});
@@ -134,9 +124,9 @@ public class Events {
                 }
                 capInfo.respawnTimeTicks--;
                 if (capInfo.respawnTimeTicks < (Config.Data.respawnTime.get() * 20) * 0.7) {
-                    ((ServerPlayer) event.player).displayClientMessage(new TextComponent("Respawn in " + ((capInfo.respawnTimeTicks / 20) + 1)), true);
+                    event.player.displayClientMessage(new TextComponent("Respawn in " + ((capInfo.respawnTimeTicks / 20) + 1)), true);
                 }else{
-                    ((ServerPlayer) event.player).displayClientMessage(new TextComponent(Capabilities.get(event.player).deathMessage).withStyle(ChatFormatting.DARK_RED), true);
+                    event.player.displayClientMessage(new TextComponent(Capabilities.get(event.player).deathMessage).withStyle(ChatFormatting.DARK_RED), true);
                 }
             }
             if (capInfo.respawnTimeTicks == 0){
@@ -150,7 +140,6 @@ public class Events {
                    //event.player.teleportTo(respawnPos.getX(), respawnPos.getY(), respawnPos.getZ());
                     ((ServerPlayer) event.player).connection.teleport(respawnPos.getX() + 0.5, respawnPos.getY() + blockHeight, respawnPos.getZ() + 0.5, ((ServerPlayer) event.player).getRespawnAngle(), 0.0f);
                     event.player.displayClientMessage(new TextComponent("Respawned!").withStyle(ChatFormatting.GREEN), true);
-                    //figure out rotation later ig idk
                 }else{
                     event.player.displayClientMessage(new TextComponent("Respawn point null!").withStyle(ChatFormatting.RED), true);
                 }
