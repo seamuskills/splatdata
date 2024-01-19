@@ -7,6 +7,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
 import net.splatcraft.forge.data.Stage;
+import net.splatcraft.forge.data.capabilities.saveinfo.SaveInfo;
 import net.splatcraft.forge.data.capabilities.saveinfo.SaveInfoCapability;
 import net.splatcraft.forge.util.ColorUtils;
 
@@ -18,26 +19,33 @@ public class Match {
     public int timeLeft = 0;
     public Stage stage;
     public ArrayList<Player> players;
-    public int teamAmount;
     public List<String> teams;
     public UUID id;
 
     public String stageID;
     public ServerLevel level;
     public boolean inProgress;
-    public Match(String stageid, ArrayList<Player> p, ServerLevel l, UUID matchid){
+    public Match(ArrayList<Player> p, ServerLevel l, UUID matchid){
         players = p;
-        stageID = stageid;
-        stage = SaveInfoCapability.get(l.getServer()).getStages().get(stageID);
-        teamAmount = stage.getTeamIds().size();
-        teams = stage.getTeamIds().stream().toList();
         id = matchid;
         level = l;
         inProgress = false;
     }
 
+    public boolean setStage(String stageid){
+        SaveInfo saveInfo = SaveInfoCapability.get(level.getServer());
+        if (saveInfo.getStages().containsKey(stageid)){
+            stageID = stageid;
+            stage = saveInfo.getStages().get(stageID);
+            teams = stage.getTeamIds().stream().toList();
+            return true;
+        }else{
+            return false;
+        }
+    }
+
     public Match(String stageid, ArrayList<Player> p, ServerLevel l) {
-        this(stageid, p, l, UUID.randomUUID());
+        this( p, l, UUID.randomUUID());
     }
 
     public void update(){
@@ -86,7 +94,7 @@ public class Match {
                     throw new RuntimeException("Someone was not ready!");
                 case ready:
                     caps.team = teams.get(teamAssign);
-                    teamAssign = (teamAssign + 1) % teamAmount;
+                    teamAssign = (teamAssign + 1) % teams.size();
                     ColorUtils.setPlayerColor(player, stage.getTeamColor(caps.team));
                     break;
                 case spectator:

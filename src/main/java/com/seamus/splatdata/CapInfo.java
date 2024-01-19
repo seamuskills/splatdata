@@ -15,6 +15,7 @@ public class CapInfo {
     public lobbyStates lobbyStatus = lobbyStates.out;
     public int preferredColor = ColorUtils.getRandomStarterColor();
     public UUID match = null;
+    public String vote = "";
     public CompoundTag writeNBT(CompoundTag compoundTag) {
         compoundTag.putInt("RespawnTicks",respawnTimeTicks);
         compoundTag.putInt("RespawnGamemode", respawnGamemode.getId());
@@ -23,6 +24,7 @@ public class CapInfo {
         if (match != null) {compoundTag.putUUID("matchid", match);}
         compoundTag.putInt("lobbyStatus", lobbyStatus.ordinal());
         compoundTag.putInt("prefColor", preferredColor);
+        compoundTag.putString("vote", vote);
         return compoundTag;
     }
 
@@ -34,6 +36,7 @@ public class CapInfo {
         if (nbt.contains("matchid")){ match = nbt.getUUID("matchid");}else{match = null;}
         lobbyStatus = lobbyStates.values()[nbt.getInt("lobbyStatus")];
         preferredColor = nbt.getInt("prefColor");
+        vote = nbt.getString("vote");
     }
 
     public boolean inMatch(){

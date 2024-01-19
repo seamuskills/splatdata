@@ -1,0 +1,12 @@
+{
+  "id":  "test",
+  "author": {
+    "text":"seamuskills"
+  },
+  "displayName": {
+    "text": "testing grounds"
+  },
+  "icon": {
+    "item": "minecraft:stone"
+  }
+}
