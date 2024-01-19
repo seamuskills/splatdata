@@ -9,6 +9,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class SpawnCommand {
     public SpawnCommand(CommandDispatcher<CommandSourceStack> dispatcher){
@@ -18,7 +19,7 @@ public class SpawnCommand {
                 return 0;
             }
             BlockPos spawn = WorldInfo.getSpawn((ServerPlayer) Command.getSource().getEntity());
-            Command.getSource().getEntity().teleportTo(spawn.getX(), spawn.getY(), spawn.getZ());
+            Command.getSource().getEntity().teleportTo(spawn.getX() + 0.5, spawn.getY() + SplatcraftData.blockHeight(spawn, Command.getSource().getPlayerOrException().getLevel()), spawn.getZ() + 0.5);
             CapInfo playerCaps = Capabilities.get((ServerPlayer)Command.getSource().getEntity());
             WorldInfo worldCaps = WorldCaps.get(Command.getSource().getEntity().getLevel());
 

@@ -55,7 +55,7 @@ public class Match {
         Stage lobby = SaveInfoCapability.get(level.getServer()).getStages().get(Config.Data.stageName.get());
         if (!(new AABB(lobby.cornerA, lobby.cornerB).expandTowards(1, 1, 1).contains(p.position())) && tp){
             BlockPos spawn = WorldInfo.getSpawn(p);
-            p.teleportTo(spawn.getX(), spawn.getY()+1,spawn.getZ());
+            p.teleportTo(spawn.getX(), spawn.getY()+SplatcraftData.blockHeight(spawn, p.getLevel()),spawn.getZ());
         }
         CapInfo caps = Capabilities.get(p);
         caps.lobbyStatus = CapInfo.lobbyStates.out;

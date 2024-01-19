@@ -1,6 +1,9 @@
 package com.seamus.splatdata;
 
 import com.mojang.logging.LogUtils;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -49,5 +52,14 @@ public class SplatcraftData {
     // Event bus for receiving Registry Events)
     @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
     public static class RegistryEvents {
+    }
+
+    public static double blockHeight(BlockPos block, Level level){
+        VoxelShape shape = level.getBlockState(block).getShape(level, block);
+        if (shape.isEmpty()){
+            return 0;
+        }else {
+            return shape.bounds().getYsize();
+        }
     }
 }

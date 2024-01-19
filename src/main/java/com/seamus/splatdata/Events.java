@@ -1,9 +1,6 @@
 package com.seamus.splatdata;
 
-import com.seamus.splatdata.commands.ChangePrefColorCommand;
-import com.seamus.splatdata.commands.MenuCommand;
-import com.seamus.splatdata.commands.RoomCommand;
-import com.seamus.splatdata.commands.SpawnCommand;
+import com.seamus.splatdata.commands.*;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -42,6 +39,7 @@ public class Events {
         new RoomCommand(event.getDispatcher());
         new ChangePrefColorCommand(event.getDispatcher());
         new MenuCommand(event.getDispatcher());
+        new SetSpawnCommand(event.getDispatcher());
     }
 
     @SubscribeEvent
@@ -98,7 +96,7 @@ public class Events {
             if (!(worldCaps.activeMatches.containsKey(capInfo.match)) && capInfo.inMatch()){
                 capInfo.match = null;
                 BlockPos spawn = WorldInfo.getSpawn((ServerPlayer)event.player);
-                event.player.teleportTo(spawn.getX(), spawn.getY(), spawn.getZ());
+                event.player.teleportTo(spawn.getX(), spawn.getY() + SplatcraftData.blockHeight(spawn, event.player.getLevel()), spawn.getZ());
                 event.player.sendMessage(new TextComponent("A communication error has occurred.").withStyle(ChatFormatting.RED), event.player.getUUID());
                 capInfo.lobbyStatus = CapInfo.lobbyStates.out;
             }
@@ -136,11 +134,8 @@ public class Events {
                 //event.player.getServer().getPlayerList().respawn((ServerPlayer)event.player, false);
                 BlockPos respawnPos = ((ServerPlayer) event.player).getRespawnPosition();
                 if (respawnPos != null) {
-                    BlockState respawnBlock = event.player.level.getBlockState(respawnPos);
-                    VoxelShape blockShape = respawnBlock.getCollisionShape(event.player.level, respawnPos);
-                    double blockHeight = !blockShape.isEmpty() ? blockShape.bounds().maxY : 0;
                    //event.player.teleportTo(respawnPos.getX(), respawnPos.getY(), respawnPos.getZ());
-                    ((ServerPlayer) event.player).connection.teleport(respawnPos.getX() + 0.5, respawnPos.getY() + blockHeight, respawnPos.getZ() + 0.5, ((ServerPlayer) event.player).getRespawnAngle(), 0.0f);
+                    ((ServerPlayer) event.player).connection.teleport(respawnPos.getX() + 0.5, respawnPos.getY() + SplatcraftData.blockHeight(respawnPos, event.player.getLevel()), respawnPos.getZ() + 0.5, ((ServerPlayer) event.player).getRespawnAngle(), 0.0f);
                     event.player.displayClientMessage(new TextComponent("Respawned!").withStyle(ChatFormatting.GREEN), true);
                 }else{
                     event.player.displayClientMessage(new TextComponent("Respawn point null!").withStyle(ChatFormatting.RED), true);

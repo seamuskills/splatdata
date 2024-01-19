@@ -4,6 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.IntTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -31,6 +32,10 @@ public class WorldInfo {
         compoundTag.put("festTeams",festTeamsTag);
 
         compoundTag.putBoolean("fest", fest);
+
+        if (spawn != null) {
+            compoundTag.put("spawn", NbtUtils.writeBlockPos(spawn));
+        }
 
         return compoundTag;
     }
@@ -64,6 +69,10 @@ public class WorldInfo {
         if (festTeamsTag != null){
             festTeams = new ArrayList<Integer>();
             for (Object festTeam : festTeamsTag.toArray()) festTeams.add((int)festTeam);
+        }
+
+        if (nbt.contains("spawn")){
+            spawn = NbtUtils.readBlockPos((CompoundTag)nbt.get("spawn"));
         }
 
         fest = nbt.getBoolean("fest");
