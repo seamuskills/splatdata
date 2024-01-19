@@ -8,12 +8,14 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.server.ServerLifecycleHooks;
+import org.apache.logging.log4j.core.jmx.Server;
 
 import java.util.ArrayList;
 
@@ -27,39 +29,39 @@ public class RoomCommand {
         dispatcher.register(Commands.literal("room").then(Commands.literal("leave").executes(this::leave)));
     }
 
-    private int createRoom(CommandContext<CommandSourceStack> command){
-        if (!(command.getSource().getEntity() instanceof Player)){
-            command.getSource().sendFailure(new TextComponent("This command can only be run by players"));
-            return 0;
-        }
+    private int createRoom(CommandContext<CommandSourceStack> command) throws CommandSyntaxException {
+        return createRoom(command.getSource().getPlayerOrException());
+    }
+
+    public static int createRoom(Player player){
         ServerLevel level = ServerLifecycleHooks.getCurrentServer().getLevel(Level.OVERWORLD);
-        CapInfo playerCap = Capabilities.get((Player)command.getSource().getEntity());
+        CapInfo playerCap = Capabilities.get(player);
         if (playerCap.inMatch()){
-            command.getSource().sendFailure(new TextComponent("Room creation failed, you are already in a room!"));
+            player.sendMessage(new TextComponent("Room creation failed, you are already in a room!").withStyle(ChatFormatting.RED), player.getUUID());
             return 0;
         }
         if (level != null) {
             WorldInfo worldCaps = WorldCaps.get(level);
             Match created = new Match("test", new ArrayList<>(), level);
-            created.stalk((ServerPlayer)command.getSource().getEntity());
+            created.stalk(player);
             worldCaps.activeMatches.put(created.id, created);
 
             playerCap.lobbyStatus = CapInfo.lobbyStates.notReady;
-            command.getSource().sendSuccess(new TextComponent("Room created!"),false);
+            player.sendMessage(new TextComponent("Room created!").withStyle(ChatFormatting.GREEN),player.getUUID());
         }else{
-            command.getSource().sendFailure(new TextComponent("null level!"));
+            player.sendMessage(new TextComponent("null level!").withStyle(ChatFormatting.RED), player.getUUID());
         }
         return 0;
     }
 
     private int joinRoom(CommandContext<CommandSourceStack> command) throws CommandSyntaxException{
-        if (!(command.getSource().getEntity() instanceof Player)){
-            command.getSource().sendFailure(new TextComponent("This command can only be run by players"));
-            return 0;
-        }
-        CapInfo playerCap = Capabilities.get((Player)command.getSource().getEntity());
+        return joinRoom(command.getSource().getPlayerOrException(), EntityArgument.getPlayer(command,"player"));
+    }
+
+    public static int joinRoom(Player player, Player target){
+        CapInfo playerCap = Capabilities.get(player);
         if (playerCap.inMatch()){
-            command.getSource().sendFailure(new TextComponent("You cannot enter multiple rooms."));
+            player.sendMessage(new TextComponent("You cannot enter multiple rooms.").withStyle(ChatFormatting.RED), player.getUUID());
             return 0;
         }
         ServerLevel level = ServerLifecycleHooks.getCurrentServer().getLevel(Level.OVERWORLD);
@@ -67,117 +69,107 @@ public class RoomCommand {
             WorldInfo worldCaps = WorldCaps.get(level);
             Match join = null;
             for (Match match : worldCaps.activeMatches.values()){
-                if (match.playerInvolved(EntityArgument.getPlayer(command, "player"))){
+                if (match.playerInvolved(target)){
                     join = match;
                 }
             }
             if (join == null){
-                command.getSource().sendFailure(new TextComponent("No room found involving that user!"));
+                player.sendMessage(new TextComponent("No room found involving that user!").withStyle(ChatFormatting.RED), player.getUUID());
                 return 0;
             }
             if (join.inProgress){
-                command.getSource().sendFailure(new TextComponent("Room game in progress!"));
+                player.sendMessage(new TextComponent("Room game in progress!").withStyle(ChatFormatting.RED), player.getUUID());
                 return 0;
             }
-            join.stalk((Player)command.getSource().getEntity());
+            join.stalk(player);
             playerCap.lobbyStatus = CapInfo.lobbyStates.notReady;
-            command.getSource().sendSuccess(new TextComponent("Joined room!"), false);
+            player.sendMessage(new TextComponent("Joined room!").withStyle(ChatFormatting.GREEN), player.getUUID());
+            join.broadcast(((TextComponent)player.getName()).append(new TextComponent("  joined.").withStyle(ChatFormatting.GREEN)));
         }else{
-            command.getSource().sendFailure(new TextComponent("null level!"));
+            player.sendMessage(new TextComponent("null level!").withStyle(ChatFormatting.RED), player.getUUID());
         }
-        return 0;
-    }
-    private int ready(CommandContext<CommandSourceStack> command){
-        if (!(command.getSource().getEntity() instanceof Player)){
-            command.getSource().sendFailure(new TextComponent("This command can only be run by players"));
-            return 0;
-        }
-        CapInfo playerCap = Capabilities.get((Player)command.getSource().getEntity());
-        if (playerCap.lobbyStatus == CapInfo.lobbyStates.ready){
-            command.getSource().sendFailure(new TextComponent("You are already ready!"));
-            return 0;
-        }
-        if (!playerCap.inMatch()){
-            command.getSource().sendFailure(new TextComponent("No room to ready up for!"));
-            return 0;
-        }
-        playerCap.lobbyStatus = CapInfo.lobbyStates.ready;
-        command.getSource().sendSuccess(new TextComponent("You are now ready!").withStyle(ChatFormatting.GREEN), false);
-        WorldInfo worldcaps = WorldCaps.get(command.getSource().getEntity().getLevel());
-        Match match = worldcaps.activeMatches.get(playerCap.match);
-        match.broadcast(((TextComponent)command.getSource().getEntity().getName()).append(new TextComponent(" is ready.").withStyle(ChatFormatting.GREEN)));
-        return 0;
-    }
-    private int unready(CommandContext<CommandSourceStack> command){
-        if (!(command.getSource().getEntity() instanceof Player)){
-            command.getSource().sendFailure(new TextComponent("This command can only be run by players"));
-            return 0;
-        }
-        CapInfo playerCap = Capabilities.get((Player)command.getSource().getEntity());
-        if (playerCap.lobbyStatus == CapInfo.lobbyStates.notReady || !playerCap.inMatch()){
-            command.getSource().sendFailure(new TextComponent("You were not ready to begin with!"));
-            return 0;
-        }
-        WorldInfo worldcaps = WorldCaps.get(command.getSource().getEntity().getLevel());
-        Match match = worldcaps.activeMatches.get(playerCap.match);
-        match.broadcast(((TextComponent)command.getSource().getEntity().getName()).append(new TextComponent(" is no longer ready.").withStyle(ChatFormatting.RED)));
-        playerCap.lobbyStatus = CapInfo.lobbyStates.notReady;
-        command.getSource().sendSuccess(new TextComponent("You are no longer ready!").withStyle(ChatFormatting.GREEN), false);
-        return 0;
-    }
-    private int spec(CommandContext<CommandSourceStack> command){
-        if (!(command.getSource().getEntity() instanceof Player)){
-            command.getSource().sendFailure(new TextComponent("This command can only be run by players"));
-            return 0;
-        }
-        CapInfo playerCap = Capabilities.get((Player)command.getSource().getEntity());
-        if (playerCap.lobbyStatus == CapInfo.lobbyStates.spectator){
-            command.getSource().sendFailure(new TextComponent("You are already spectating!"));
-            return 0;
-        }
-        if (!playerCap.inMatch()){
-            command.getSource().sendFailure(new TextComponent("No room to spectate in!"));
-            return 0;
-        }
-        playerCap.lobbyStatus = CapInfo.lobbyStates.spectator;
-        command.getSource().sendSuccess(new TextComponent("You are now spectating!").withStyle(ChatFormatting.GREEN), false);
-        WorldInfo worldcaps = WorldCaps.get(command.getSource().getEntity().getLevel());
-        Match match = worldcaps.activeMatches.get(playerCap.match);
-        match.broadcast(((TextComponent)command.getSource().getEntity().getName()).append(new TextComponent(" is ready to spectate.").withStyle(ChatFormatting.WHITE)));
         return 0;
     }
 
-    private int leave(CommandContext<CommandSourceStack> command){
-        if (!(command.getSource().getEntity() instanceof Player)){
-            command.getSource().sendFailure(new TextComponent("This command can only be run by players"));
+    private int ready(CommandContext<CommandSourceStack> command) throws CommandSyntaxException {
+        return ready(command.getSource().getPlayerOrException());
+    }
+
+    public static int ready(Player player){
+        CapInfo playerCap = Capabilities.get(player);
+        if (playerCap.lobbyStatus == CapInfo.lobbyStates.ready){
+            player.sendMessage(new TextComponent("You are already ready!").withStyle(ChatFormatting.RED), player.getUUID());
             return 0;
         }
-        ServerLevel level = ServerLifecycleHooks.getCurrentServer().getLevel(Level.OVERWORLD);
-        if (level != null) {
-            WorldInfo worldcaps = WorldCaps.get(level);
-            Match currentMatch = null;
-            for (Match match : worldcaps.activeMatches.values()){
-                if (match.playerInvolved((Player)command.getSource().getEntity())){
-                    currentMatch = match;
-                }
-            }
-            if (currentMatch == null){
-                command.getSource().sendFailure(new TextComponent("You are not in a match!"));
-            }else if (!currentMatch.inProgress){
-                currentMatch.broadcast(((TextComponent)command.getSource().getEntity().getName()).append(new TextComponent(" has left the room!").withStyle(ChatFormatting.RED)));
-                currentMatch.excommunicate((ServerPlayer) command.getSource().getEntity());
-                command.getSource().sendSuccess(new TextComponent("You left the match."), false);
-                CapInfo caps = Capabilities.get((Player)command.getSource().getEntity());
-                caps.lobbyStatus = CapInfo.lobbyStates.out;
-            }else{
-                currentMatch.excommunicate((ServerPlayer) command.getSource().getEntity(), true);
-                command.getSource().sendSuccess(new TextComponent("You left the match."), false);
-                CapInfo caps = Capabilities.get((Player)command.getSource().getEntity());
-                caps.lobbyStatus = CapInfo.lobbyStates.out;
-            }
-        }else{
-            command.getSource().sendFailure(new TextComponent("level is null!"));
+        if (!playerCap.inMatch()){
+            player.sendMessage(new TextComponent("No room to ready up for!").withStyle(ChatFormatting.RED), player.getUUID());
+            return 0;
         }
+        playerCap.lobbyStatus = CapInfo.lobbyStates.ready;
+        player.sendMessage(new TextComponent("You are now ready!").withStyle(ChatFormatting.GREEN), player.getUUID());
+        WorldInfo worldcaps = WorldCaps.get(player.getLevel());
+        Match match = worldcaps.activeMatches.get(playerCap.match);
+        match.broadcast(((TextComponent)player.getName()).append(new TextComponent(" is ready.").withStyle(ChatFormatting.GREEN)));
+        return 0;
+    }
+
+    private int unready(CommandContext<CommandSourceStack> command) throws CommandSyntaxException {
+        return unready(command.getSource().getPlayerOrException());
+    }
+
+    public static int unready(Player player){
+        CapInfo playerCap = Capabilities.get(player);
+        if (playerCap.lobbyStatus == CapInfo.lobbyStates.notReady || !playerCap.inMatch()){
+            player.sendMessage(new TextComponent("You were not ready to begin with!").withStyle(ChatFormatting.RED), player.getUUID());
+            return 0;
+        }
+        WorldInfo worldcaps = WorldCaps.get(player.getLevel());
+        Match match = worldcaps.activeMatches.get(playerCap.match);
+        match.broadcast(((TextComponent)player.getName()).append(new TextComponent(" is no longer ready.").withStyle(ChatFormatting.RED)));
+        playerCap.lobbyStatus = CapInfo.lobbyStates.notReady;
+        player.sendMessage(new TextComponent("You are no longer ready!").withStyle(ChatFormatting.GREEN), player.getUUID());
+        return 0;
+    }
+
+    private int spec(CommandContext<CommandSourceStack> command) throws CommandSyntaxException {
+        return spec(command.getSource().getPlayerOrException());
+    }
+
+    public static int spec(Player player){
+        CapInfo playerCap = Capabilities.get(player);
+        if (playerCap.lobbyStatus == CapInfo.lobbyStates.spectator){
+            player.sendMessage(new TextComponent("You are already spectating!").withStyle(ChatFormatting.RED), player.getUUID());
+            return 0;
+        }
+        if (!playerCap.inMatch()){
+            player.sendMessage(new TextComponent("No room to spectate in!").withStyle(ChatFormatting.RED), player.getUUID());
+            return 0;
+        }
+        playerCap.lobbyStatus = CapInfo.lobbyStates.spectator;
+        player.sendMessage(new TextComponent("You are now spectating!").withStyle(ChatFormatting.GREEN), player.getUUID());
+        WorldInfo worldcaps = WorldCaps.get(player.getLevel());
+        Match match = worldcaps.activeMatches.get(playerCap.match);
+        match.broadcast(((TextComponent)player.getName()).append(new TextComponent(" is ready to spectate.").withStyle(ChatFormatting.WHITE)));
+        return 0;
+    }
+
+    private int leave(CommandContext<CommandSourceStack> command) throws CommandSyntaxException {
+        return leave(command.getSource().getPlayerOrException());
+    }
+
+    public static int leave(Player player){
+        ServerLevel level = (ServerLevel)player.getLevel();
+        WorldInfo worldcaps = WorldCaps.get(level);
+        CapInfo playerCaps = Capabilities.get(player);
+        if (!(playerCaps.inMatch())){
+            player.sendMessage(new TextComponent("You are not in a match!").withStyle(ChatFormatting.RED),player.getUUID());
+            return 0;
+        }
+        Match currentMatch = worldcaps.activeMatches.get(playerCaps.match);
+        currentMatch.broadcast(((TextComponent)player.getName()).append(new TextComponent(" has left the room!").withStyle(ChatFormatting.RED)));
+        currentMatch.excommunicate((ServerPlayer) player, currentMatch.inProgress);
+        player.sendMessage(new TextComponent("You left the match."), player.getUUID());
+        playerCaps.lobbyStatus = CapInfo.lobbyStates.out;
         return 0;
     }
 }

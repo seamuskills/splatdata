@@ -1,6 +1,7 @@
 package com.seamus.splatdata;
 
 import com.seamus.splatdata.commands.ChangePrefColorCommand;
+import com.seamus.splatdata.commands.MenuCommand;
 import com.seamus.splatdata.commands.RoomCommand;
 import com.seamus.splatdata.commands.SpawnCommand;
 import net.minecraft.ChatFormatting;
@@ -40,6 +41,7 @@ public class Events {
         new SpawnCommand(event.getDispatcher());
         new RoomCommand(event.getDispatcher());
         new ChangePrefColorCommand(event.getDispatcher());
+        new MenuCommand(event.getDispatcher());
     }
 
     @SubscribeEvent

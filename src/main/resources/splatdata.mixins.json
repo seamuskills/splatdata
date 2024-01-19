@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.seamus.splatdata.mixins",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "ServerMenus.refmap.json",
+  "mixins": [
+    "AbstractContainerMenuMixin",
+    "DispenserAccessor",
+    "HopperAccessor"
+  ],
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
