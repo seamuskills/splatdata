@@ -7,7 +7,7 @@ import net.minecraft.commands.Commands;
 
 public class VoteCommand {
     public VoteCommand(CommandDispatcher<CommandSourceStack> dispatcher){
-        dispatcher.register(Commands.literal("mapVote").executes((Command) -> {
+        dispatcher.register(Commands.literal("vote").executes((Command) -> {
             Command.getSource().getPlayerOrException().openMenu(new VoteMenu(Command.getSource().getPlayerOrException()));
             return 0;
         }));

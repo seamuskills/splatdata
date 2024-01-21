@@ -6,6 +6,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.bossevents.CustomBossEvent;
+import net.minecraft.server.bossevents.CustomBossEvents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
@@ -21,11 +23,14 @@ import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
+import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.server.ServerLifecycleHooks;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -79,8 +84,21 @@ public class Events {
         if (level == null) return;
         WorldInfo info = WorldCaps.get(level);
         for (Match match : info.activeMatches.values()){
-            match.update();
+                match.update();
         }
+    }
+
+    @SubscribeEvent
+    public static void serverEnd(ServerStoppingEvent event){
+        for (Match match : WorldCaps.get(event.getServer().getLevel(Level.OVERWORLD)).activeMatches.values()){
+            match.closeMatch();
+        }
+    }
+
+    @SubscribeEvent
+    public static void serverStart(ServerStartedEvent event){
+        Collection<CustomBossEvent> bossEvents = event.getServer().getCustomBossEvents().getEvents();
+        bossEvents.removeIf(bossEvent -> bossEvent.getTextId().getNamespace().equals("splatdata"));
     }
 
     @SubscribeEvent

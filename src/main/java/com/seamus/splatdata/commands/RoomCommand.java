@@ -8,14 +8,12 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.server.ServerLifecycleHooks;
-import org.apache.logging.log4j.core.jmx.Server;
 
 import java.util.ArrayList;
 
@@ -33,7 +31,7 @@ public class RoomCommand {
         return createRoom(command.getSource().getPlayerOrException());
     }
 
-    public static int createRoom(Player player){
+    public static int createRoom(ServerPlayer player){
         ServerLevel level = ServerLifecycleHooks.getCurrentServer().getLevel(Level.OVERWORLD);
         CapInfo playerCap = Capabilities.get(player);
         if (playerCap.inMatch()){
@@ -42,7 +40,7 @@ public class RoomCommand {
         }
         if (level != null) {
             WorldInfo worldCaps = WorldCaps.get(level);
-            Match created = new Match("test", new ArrayList<>(), level);
+            Match created = new Match(new ArrayList<>(), level);
             created.stalk(player);
             worldCaps.activeMatches.put(created.id, created);
 
@@ -58,7 +56,7 @@ public class RoomCommand {
         return joinRoom(command.getSource().getPlayerOrException(), EntityArgument.getPlayer(command,"player"));
     }
 
-    public static int joinRoom(Player player, Player target){
+    public static int joinRoom(ServerPlayer player, Player target){
         CapInfo playerCap = Capabilities.get(player);
         if (playerCap.inMatch()){
             player.sendMessage(new TextComponent("You cannot enter multiple rooms.").withStyle(ChatFormatting.RED), player.getUUID());
