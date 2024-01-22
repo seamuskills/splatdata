@@ -46,7 +46,7 @@ public class Match {
 
     public int cutsceneTime = -1;
     public Stage stage;
-    public Collection<ServerPlayer> players;
+    public ArrayList<UUID> players;
     public List<String> teams;
     public UUID id;
 
@@ -58,7 +58,11 @@ public class Match {
     public matchStates currentState = matchStates.intro;
     public RemoteItem.RemoteResult results;
     public Match(ArrayList<ServerPlayer> p, ServerLevel l, UUID matchid){
-        players = p;
+        if (!p.isEmpty()) {
+            players = (ArrayList<UUID>) p.stream().map(Entity::getUUID).toList();
+        }else{
+            players = new ArrayList<>();
+        }
         id = matchid;
         level = l;
         inProgress = false;
@@ -101,8 +105,13 @@ public class Match {
         this( p, l, UUID.randomUUID());
     }
 
+    public List<ServerPlayer> getPlayerList(){
+        List<Player> playerlist = players.stream().map(level::getPlayerByUUID).toList();
+        return playerlist.stream().map((entity) -> {return (ServerPlayer)entity;}).toList();
+    }
+
     public void update(){
-        bossbar.setPlayers(players);
+        bossbar.setPlayers(getPlayerList());
         if (inProgress){
             switch (currentState){
                 case intro:
@@ -139,28 +148,28 @@ public class Match {
 
     private void endingCutscene(){
         if (cutsceneTime == -1) {
-            for (ServerPlayer player : players) {
+            for (ServerPlayer player : getPlayerList()) {
                 if (Capabilities.hasCapability(player)) Capabilities.get(player).respawnTimeTicks = -1;
-                player.gameMode.changeGameModeForPlayer(GameType.SPECTATOR);
+                player.setGameMode(GameType.SPECTATOR);
                 bossbar.setVisible(false);
             }
-            results = TurfScannerItem.scanTurf(level, level, stage.cornerA, stage.cornerB, 1, new ArrayList<>());
-            broadcast(results.getOutput());
+            results = TurfScannerItem.scanTurf(level, level, stage.cornerA, stage.cornerB, 1, getPlayerList());
             cutsceneTime = (int)(Config.Data.introLength.get() * 20);
         }else if(cutsceneTime > 0){
             //middle code to be added
         }else{
             currentState = matchStates.intro;
             inProgress = false;
-            for (ServerPlayer player : players){
+            for (ServerPlayer player : getPlayerList()){
                 CapInfo playerCaps = Capabilities.get(player);
                 playerCaps.lobbyStatus = CapInfo.lobbyStates.notReady;
                 player.setGameMode(GameType.ADVENTURE);
 
                 BlockPos spawn = WorldInfo.getSpawn(player);
                 player.teleportTo(spawn.getX() + 0.5, spawn.getY() + SplatcraftData.blockHeight(spawn, level), spawn.getZ() + 0.5);
-                player.setRespawnPosition(Level.OVERWORLD,spawn, 0, true, false);
+                player.setRespawnPosition(Level.OVERWORLD,new BlockPos(player.position()), 0, true, false);
             }
+            bossbar.setVisible(true);
         }
         cutsceneTime--;
     }
@@ -171,21 +180,21 @@ public class Match {
             broadcast(new TextComponent("by ").append(StageDataListener.stages.get(stageID).author));
             bossbar.setVisible(false);
             cutsceneTime = (int)(Config.Data.introLength.get() * 20);
-            for (ServerPlayer player : players){
+            for (ServerPlayer player : getPlayerList()){
                 player.setGameMode(GameType.SPECTATOR);
             }
         }else if (cutsceneTime > 0){
-            for (ServerPlayer player : players){
+            for (ServerPlayer player : getPlayerList()){
                 Vec3 angle = player.getLookAngle().multiply(0.1, 0.1, 0.1);
                 player.teleportTo(player.position().x + angle.x, player.position().y + angle.y, player.position().z + angle.z);
             }
         }else{
-            for (ServerPlayer player : players){
+            for (ServerPlayer player : getPlayerList()){
                 if (Capabilities.get(player).lobbyStatus != CapInfo.lobbyStates.spectator)
                     player.setGameMode(GameType.ADVENTURE);
             }
             System.out.println("ended");
-            warpPlayers(stageID, players, false);
+            warpPlayers(stageID, getPlayerList(), false);
             currentState = matchStates.gameplay;
             bossbar.setVisible(true);
         }
@@ -194,13 +203,9 @@ public class Match {
 
     private void notStarted(){
         //if there are no players that aren't ready or spectating
-        List<ServerPlayer> notReady = players.stream().filter((player) -> {
-            if (Capabilities.hasCapability(player)) {
+        List<ServerPlayer> notReady = getPlayerList().stream().filter((player) -> {
                 CapInfo caps = Capabilities.get(player);
                 return caps.lobbyStatus != CapInfo.lobbyStates.ready && caps.lobbyStatus != CapInfo.lobbyStates.spectator;
-            }else{
-                return true;
-            }
         }).toList();
 
         if (notReady.isEmpty()){
@@ -222,13 +227,13 @@ public class Match {
     }
 
     public void stalk(ServerPlayer p){
-        players.add(p);
+        players.add(p.getUUID());
         CapInfo caps = Capabilities.get(p);
         caps.match = id;
     }
 
     public void excommunicate(ServerPlayer p, boolean tp){
-        players.remove(p);
+        players.remove(p.getUUID());
         Stage lobby = SaveInfoCapability.get(level.getServer()).getStages().get(Config.Data.stageName.get());
         if (!(new AABB(lobby.cornerA, lobby.cornerB).expandTowards(1, 1, 1).contains(p.position())) && (tp || inProgress)){
             BlockPos spawn = WorldInfo.getSpawn(p);
@@ -244,7 +249,7 @@ public class Match {
     }
 
     public void broadcast(Component component){
-        for (Player p : players){
+        for (Player p : getPlayerList()){
             p.sendMessage(component, p.getUUID());
         }
     }
@@ -325,7 +330,7 @@ public class Match {
             validStages.remove(match.stageID);
         }
 
-        ArrayList<String> votes = new ArrayList<>(players.stream().map((p) -> {
+        ArrayList<String> votes = new ArrayList<>(getPlayerList().stream().map((p) -> {
             return Capabilities.get(p).vote;
         }).filter(validStages::containsKey).toList());
 
@@ -352,7 +357,7 @@ public class Match {
         }
 
         int teamAssign = 0;
-        for (ServerPlayer player : players) {
+        for (ServerPlayer player : getPlayerList()) {
             CapInfo caps = Capabilities.get(player);
             player.setHealth(player.getMaxHealth());
             switch (caps.lobbyStatus) {
@@ -371,9 +376,10 @@ public class Match {
                     break;
             }
         }
-        List<ServerPlayer> noSpectators = players.stream().filter((p) -> {return !p.isSpectator();}).toList();
+        List<ServerPlayer> noSpectators = getPlayerList().stream().filter((p) -> {return Capabilities.get(p).lobbyStatus != CapInfo.lobbyStates.spectator;}).toList();
         warpPlayers(stageID, noSpectators, true);
-        for (ServerPlayer player : players.stream().filter(ServerPlayer::isSpectator).toList()){
+        for (ServerPlayer player : getPlayerList()){
+            if (noSpectators.contains(player)) continue;
             ServerPlayer target = noSpectators.get(level.random.nextInt(noSpectators.size()));
             player.teleportTo(target.position().x, target.position().y, target.position().z);
         }
@@ -413,6 +419,6 @@ public class Match {
 //    }
 
     public boolean playerInvolved(Player player){
-        return players.contains(player);
+        return players.contains(player.getUUID());
     }
 }
