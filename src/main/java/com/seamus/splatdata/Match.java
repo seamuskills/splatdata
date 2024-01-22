@@ -149,7 +149,7 @@ public class Match {
     private void endingCutscene(){
         if (cutsceneTime == -1) {
             for (ServerPlayer player : getPlayerList()) {
-                if (Capabilities.hasCapability(player)) Capabilities.get(player).respawnTimeTicks = -1;
+                Capabilities.get(player).respawnTimeTicks = -1;
                 player.setGameMode(GameType.SPECTATOR);
                 bossbar.setVisible(false);
             }
@@ -182,6 +182,7 @@ public class Match {
             cutsceneTime = (int)(Config.Data.introLength.get() * 20);
             for (ServerPlayer player : getPlayerList()){
                 player.setGameMode(GameType.SPECTATOR);
+                Capabilities.get(player).respawnTimeTicks = -1;
             }
         }else if (cutsceneTime > 0){
             for (ServerPlayer player : getPlayerList()){
