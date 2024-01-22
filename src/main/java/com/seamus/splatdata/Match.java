@@ -107,6 +107,7 @@ public class Match {
 
     public List<ServerPlayer> getPlayerList(){
         List<Player> playerlist = players.stream().map(level::getPlayerByUUID).toList();
+        playerlist = playerlist.stream().filter(Objects::nonNull).toList();
         return playerlist.stream().map((entity) -> {return (ServerPlayer)entity;}).toList();
     }
 
