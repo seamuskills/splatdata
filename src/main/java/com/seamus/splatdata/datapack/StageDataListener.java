@@ -1,6 +1,7 @@
 package com.seamus.splatdata.datapack;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.minecraft.network.chat.Component;
@@ -12,6 +13,8 @@ import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.level.storage.loot.Deserializers;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,7 +32,14 @@ public class StageDataListener extends SimpleJsonResourceReloadListener {
     protected void apply(Map<ResourceLocation, JsonElement> resourceMap, ResourceManager resourceManager, ProfilerFiller profilerFiller) {
         stages.clear();
         for (JsonElement json : resourceMap.values()){
-            StageData data = new StageData(GsonHelper.getAsString((JsonObject) json, "id"), Component.Serializer.fromJson(json.getAsJsonObject().getAsJsonObject("author")), Component.Serializer.fromJson(json.getAsJsonObject().getAsJsonObject("displayName")), ShapedRecipe.itemStackFromJson(json.getAsJsonObject().getAsJsonObject("icon")));
+            ArrayList<String> ignoredTeams;
+            if (json.getAsJsonObject().has("ignoredTeams")){
+                JsonArray jsonArray = GsonHelper.getAsJsonArray((JsonObject)json, "ignoredTeams");
+                ignoredTeams = new Gson().fromJson(jsonArray, ArrayList.class);
+            }else{
+                ignoredTeams = new ArrayList<>();
+            }
+            StageData data = new StageData(GsonHelper.getAsString((JsonObject) json, "id"), Component.Serializer.fromJson(json.getAsJsonObject().getAsJsonObject("author")), Component.Serializer.fromJson(json.getAsJsonObject().getAsJsonObject("displayName")), ShapedRecipe.itemStackFromJson(json.getAsJsonObject().getAsJsonObject("icon")), ignoredTeams);
             stages.put(data.id, data);
         }
     }

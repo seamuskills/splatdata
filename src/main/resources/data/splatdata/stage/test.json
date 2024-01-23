@@ -8,5 +8,8 @@
   },
   "icon": {
     "item": "minecraft:stone"
-  }
+  },
+  "ignoredTeams": [
+    "test"
+  ]
 }

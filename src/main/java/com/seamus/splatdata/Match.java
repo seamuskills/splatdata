@@ -28,17 +28,21 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.splatcraft.forge.blocks.SpawnPadBlock;
+import net.splatcraft.forge.commands.ReplaceColorCommand;
 import net.splatcraft.forge.commands.ScanTurfCommand;
 import net.splatcraft.forge.data.Stage;
 import net.splatcraft.forge.data.capabilities.saveinfo.SaveInfo;
 import net.splatcraft.forge.data.capabilities.saveinfo.SaveInfoCapability;
+import net.splatcraft.forge.items.remotes.ColorChangerItem;
 import net.splatcraft.forge.items.remotes.InkDisruptorItem;
 import net.splatcraft.forge.items.remotes.RemoteItem;
 import net.splatcraft.forge.items.remotes.TurfScannerItem;
 import net.splatcraft.forge.tileentities.SpawnPadTileEntity;
 import net.splatcraft.forge.util.ColorUtils;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 public class Match {
     public int timeLeft = -1;
@@ -94,7 +98,8 @@ public class Match {
         if (saveInfo.getStages().containsKey(stageid)){
             stageID = stageid;
             stage = saveInfo.getStages().get(stageID);
-            teams = stage.getTeamIds().stream().toList();
+            teams = new ArrayList<>(stage.getTeamIds());
+            teams.removeIf(StageDataListener.stages.get(stageID).ignoreTeams::contains);
             return true;
         }else{
             return false;
@@ -109,6 +114,19 @@ public class Match {
         List<Player> playerlist = players.stream().map(level::getPlayerByUUID).toList();
         playerlist = playerlist.stream().filter(Objects::nonNull).toList();
         return playerlist.stream().map((entity) -> {return (ServerPlayer)entity;}).toList();
+    }
+
+    public void setTeamColors(){
+        float offset = level.random.nextFloat();
+        for (int teamIndex = 0; teamIndex < teams.size(); teamIndex++){
+            float h = (teamIndex / (float)teams.size()); // (index / number of teams + 1) divide hue evenly between teams, add 1 to number of teams so the 2 outer most teams in the color space can't overlap.
+            int color = Color.HSBtoRGB((offset + h) % 1, 1, 1);
+            color &= 0x00ffffff; //cause the color it returns has an extra FF at the beginning
+            color = Math.floorMod(color, 0xffffff);
+            //Level level, BlockPos from, BlockPos to, int color, int mode, int affectedColor, String stage, String affectedTeam
+            ColorChangerItem.replaceColor(level, stage.cornerA, stage.cornerB, color, 1, stage.getTeamColor(teams.get(teamIndex)), stageID, teams.get(teamIndex));
+            //stage.setTeamColor(teams.get(teamIndex), color);
+        }
     }
 
     public void update(){
@@ -142,7 +160,6 @@ public class Match {
         }else{
             //end Match code
             currentState = matchStates.ending;
-            System.out.println("gameplay ending");
         }
         timeLeft--;
     }
@@ -195,7 +212,6 @@ public class Match {
                 if (Capabilities.get(player).lobbyStatus != CapInfo.lobbyStates.spectator)
                     player.setGameMode(GameType.ADVENTURE);
             }
-            System.out.println("ended");
             warpPlayers(stageID, getPlayerList(), false);
             currentState = matchStates.gameplay;
             bossbar.setVisible(true);
@@ -357,6 +373,8 @@ public class Match {
             broadcast(new TextComponent("Invalid stage selected! Please contact admin!").withStyle(ChatFormatting.RED));
             return; //can't start with no stage
         }
+
+        if (Config.Data.randomColors.get()) setTeamColors();
 
         int teamAssign = 0;
         for (ServerPlayer player : getPlayerList()) {

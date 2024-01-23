@@ -149,7 +149,6 @@ public class Events {
                 }
             }
             if (capInfo.respawnTimeTicks == 0){
-                ((ServerPlayer)event.player).setGameMode(capInfo.respawnGamemode);
                 //event.player.getServer().getPlayerList().respawn((ServerPlayer)event.player, false);
                 BlockPos respawnPos = ((ServerPlayer) event.player).getRespawnPosition();
                 if (respawnPos != null) {
@@ -159,6 +158,7 @@ public class Events {
                 }else{
                     event.player.displayClientMessage(new TextComponent("Respawn point null!").withStyle(ChatFormatting.RED), true);
                 }
+                ((ServerPlayer)event.player).setGameMode(capInfo.respawnGamemode);
             }
         }
     }
