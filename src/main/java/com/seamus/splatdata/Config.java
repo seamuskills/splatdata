@@ -30,6 +30,7 @@ public class Config {
         public static ForgeConfigSpec.IntValue varietyRequirement;
         public static ForgeConfigSpec.DoubleValue readyToStartTime;
         public static ForgeConfigSpec.DoubleValue introLength;
+        public static ForgeConfigSpec.BooleanValue randomColors;
         public static void init(ForgeConfigSpec.Builder builder){
             respawnTime = builder.comment("How long the respawn time is (in seconds)").defineInRange("splatcraftdata.respawntime", 7.0f ,0.0d, Double.MAX_VALUE);
             stageName = builder.comment("id of the /stage stage used for the lobby").define("splatcraftdata.stageName","s3Lobby");
@@ -37,6 +38,7 @@ public class Config {
             varietyRequirement = builder.comment("The percentage of player votes that must be valid before the stage is chosen randomly.").defineInRange("splatcraftdata.voteRequirement", 50, 1, 100);
             readyToStartTime = builder.comment("How many seconds until a match starts after everyone is ready").defineInRange("splatcraftdata.readyToStartTime", 5, 0.1, Double.MAX_VALUE);
             introLength = builder.comment("How many seconds the intro cutscene should take before the match begins").defineInRange("splatcraftdata.introLength", 5, 1, Double.MAX_VALUE);
+            randomColors = builder.comment("Whether teams should be of random colors when a match starts on a given stage. Will destroy original colors used!").define("splatdata.randomColors",true);
         }
     }
 }
