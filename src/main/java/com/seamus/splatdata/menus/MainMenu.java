@@ -16,8 +16,6 @@ public class MainMenu extends MenuContainer{
     @Override
     public void init(ServerPlayer player) {
         addButton(0, 0, new GotoMenuButton(new ItemStack(SplatcraftItems.splattershot.get(), 1), new TextComponent("Rooms"), RoomMenuMain::new));
-        addButton(0, 2, new FunctionButton(new ItemStack(Items.MAP), new TextComponent("Change map vote"), (p) -> {
-            p.openMenu(new VoteMenu(p));
-        }));
+        addButton(0, 2, new GotoMenuButton(new ItemStack(Items.MAP, 1), new TextComponent("Set map vote"), VoteMenu::new));
     }
 }

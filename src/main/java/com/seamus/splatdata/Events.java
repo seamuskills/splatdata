@@ -114,8 +114,7 @@ public class Events {
 
             if (!(worldCaps.activeMatches.containsKey(capInfo.match)) && capInfo.inMatch()){
                 capInfo.match = null;
-                BlockPos spawn = WorldInfo.getSpawn((ServerPlayer)event.player);
-                event.player.teleportTo(spawn.getX(), spawn.getY() + SplatcraftData.blockHeight(spawn, event.player.getLevel()), spawn.getZ());
+                SpawnCommand.tpToSpawn((ServerPlayer) event.player, true, true);
                 event.player.sendMessage(new TextComponent("A communication error has occurred.").withStyle(ChatFormatting.RED), event.player.getUUID());
                 capInfo.lobbyStatus = CapInfo.lobbyStates.out;
             }

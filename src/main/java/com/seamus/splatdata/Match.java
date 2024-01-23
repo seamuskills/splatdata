@@ -1,6 +1,7 @@
 package com.seamus.splatdata;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.seamus.splatdata.commands.SpawnCommand;
 import com.seamus.splatdata.datapack.StageData;
 import com.seamus.splatdata.datapack.StageDataListener;
 import net.minecraft.ChatFormatting;
@@ -181,11 +182,8 @@ public class Match {
             for (ServerPlayer player : getPlayerList()){
                 CapInfo playerCaps = Capabilities.get(player);
                 playerCaps.lobbyStatus = CapInfo.lobbyStates.notReady;
-                player.setGameMode(GameType.ADVENTURE);
 
-                BlockPos spawn = WorldInfo.getSpawn(player);
-                player.teleportTo(spawn.getX() + 0.5, spawn.getY() + SplatcraftData.blockHeight(spawn, level), spawn.getZ() + 0.5);
-                player.setRespawnPosition(Level.OVERWORLD,new BlockPos(player.position()), 0, true, false);
+                SpawnCommand.tpToSpawn(player, true, true);
             }
             bossbar.setVisible(true);
         }
@@ -252,15 +250,10 @@ public class Match {
 
     public void excommunicate(ServerPlayer p, boolean tp){
         players.remove(p.getUUID());
-        Stage lobby = SaveInfoCapability.get(level.getServer()).getStages().get(Config.Data.stageName.get());
-        if (!(new AABB(lobby.cornerA, lobby.cornerB).expandTowards(1, 1, 1).contains(p.position())) && (tp || inProgress)){
-            BlockPos spawn = WorldInfo.getSpawn(p);
-            p.teleportTo(spawn.getX(), spawn.getY()+SplatcraftData.blockHeight(spawn, p.getLevel()),spawn.getZ());
-            p.setGameMode(GameType.ADVENTURE);
-        }
         CapInfo caps = Capabilities.get(p);
         caps.lobbyStatus = CapInfo.lobbyStates.out;
         caps.match = null;
+        if (tp || inProgress) SpawnCommand.tpToSpawn(p, true, true);
         if (players.isEmpty()){
             closeMatch();
         }
