@@ -1,9 +1,16 @@
 package com.seamus.splatdata;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.splatcraft.forge.util.ColorUtils;
 
+import java.util.ArrayList;
 import java.util.UUID;
 
 public class CapInfo {
@@ -16,6 +23,8 @@ public class CapInfo {
     public int preferredColor = ColorUtils.getRandomStarterColor();
     public UUID match = null;
     public String vote = "";
+    public ArrayList<ResourceLocation> unlockedWeapons = new ArrayList<>();
+    public int cash = 0;
     public CompoundTag writeNBT(CompoundTag compoundTag) {
         compoundTag.putInt("RespawnTicks",respawnTimeTicks);
         compoundTag.putInt("RespawnGamemode", respawnGamemode.getId());
@@ -25,6 +34,10 @@ public class CapInfo {
         compoundTag.putInt("lobbyStatus", lobbyStatus.ordinal());
         compoundTag.putInt("prefColor", preferredColor);
         compoundTag.putString("vote", vote);
+        ListTag unlockedWeaponsTag = new ListTag();
+        for (ResourceLocation res : unlockedWeapons) {unlockedWeaponsTag.add(StringTag.valueOf(res.toString()));}
+        compoundTag.put("purchasedItems", unlockedWeaponsTag);
+        compoundTag.putInt("cash", cash);
         return compoundTag;
     }
 
@@ -37,6 +50,11 @@ public class CapInfo {
         lobbyStatus = lobbyStates.values()[nbt.getInt("lobbyStatus")];
         preferredColor = nbt.getInt("prefColor");
         vote = nbt.getString("vote");
+        ListTag unlockedWeaponsTag = nbt.getList("purchasedItems", ListTag.TAG_STRING);
+        for (Tag t : unlockedWeaponsTag){
+            unlockedWeapons.add(new ResourceLocation(t.getAsString()));
+        }
+        cash = nbt.getInt("cash");
     }
 
     public boolean inMatch(){

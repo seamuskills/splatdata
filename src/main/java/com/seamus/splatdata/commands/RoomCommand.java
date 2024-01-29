@@ -4,6 +4,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.seamus.splatdata.*;
+import com.seamus.splatdata.menus.RoomMenuMain;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -25,6 +26,26 @@ public class RoomCommand {
         dispatcher.register(Commands.literal("room").then(Commands.literal("unready").executes(this::unready)));
         dispatcher.register(Commands.literal("room").then(Commands.literal("spec").executes(this::spec)));
         dispatcher.register(Commands.literal("room").then(Commands.literal("leave").executes(this::leave)));
+        dispatcher.register(Commands.literal("room").then(Commands.literal("list").executes(this::list)));
+        dispatcher.register(Commands.literal("room").executes((command) -> {
+            command.getSource().getPlayerOrException().openMenu(new RoomMenuMain(command.getSource().getPlayerOrException()));
+            return 0;
+        }));
+    }
+
+    public int list(CommandContext<CommandSourceStack> command) throws CommandSyntaxException {
+        Player player = command.getSource().getPlayerOrException();
+        CapInfo playerCaps = Capabilities.get(player);
+        if (playerCaps.inMatch()){
+            WorldInfo worldcaps = WorldCaps.get(player.getLevel());
+            player.sendMessage(new TextComponent("Room Player List"), player.getUUID());
+            for (Player p : worldcaps.activeMatches.get(playerCaps.match).getPlayerList()){
+                player.sendMessage(p.getName(), player.getUUID());
+            }
+        }else{
+            command.getSource().sendFailure(new TextComponent("You are not in a match!"));
+        }
+        return 0;
     }
 
     private int createRoom(CommandContext<CommandSourceStack> command) throws CommandSyntaxException {

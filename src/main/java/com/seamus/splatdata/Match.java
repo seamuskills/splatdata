@@ -8,10 +8,9 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
+import net.minecraft.network.chat.*;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.ComponentUtils;
 import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.bossevents.CustomBossEvent;
@@ -24,10 +23,12 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.BossEvent;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.world.ForgeChunkManager;
 import net.splatcraft.forge.blocks.SpawnPadBlock;
 import net.splatcraft.forge.commands.ReplaceColorCommand;
 import net.splatcraft.forge.commands.ScanTurfCommand;
@@ -61,7 +62,8 @@ public class Match {
     public CustomBossEvent bossbar;
     public enum matchStates{intro, gameplay, ending}
     public matchStates currentState = matchStates.intro;
-    public RemoteItem.RemoteResult results;
+    public TurfScannerItem.TurfScanResult results;
+    public TreeMap<Integer, Integer> scores;
     public Match(ArrayList<ServerPlayer> p, ServerLevel l, UUID matchid){
         if (!p.isEmpty()) {
             players = (ArrayList<UUID>) p.stream().map(Entity::getUUID).toList();
@@ -82,6 +84,13 @@ public class Match {
         bossbar.setPlayers(new ArrayList<ServerPlayer>()); //if I don't do this, the bossbar will stay on the player's screen even if I destroy it...
         bossEvents.remove(bossbar);
         WorldCaps.get(level).activeMatches.remove(this.id);
+//        ChunkPos pos1 = level.getChunkAt(stage.cornerA).getPos();
+//        ChunkPos pos2 = level.getChunkAt(stage.cornerB).getPos();
+//        for (int x = 0; x < Math.abs(pos2.x - pos1.x); x++){
+//            for (int z = 0; z < Math.abs(pos2.z - pos1.z); z++){
+//                ForgeChunkManager.forceChunk(level, "splatdata", stage.cornerA, x, z, false, false);
+//            }
+//        }
     }
     //    private static int createBar(CommandSourceStack p_136592_, ResourceLocation p_136593_, Component p_136594_) throws CommandSyntaxException {
 //        CustomBossEvents $$3 = p_136592_.getServer().getCustomBossEvents();
@@ -111,10 +120,15 @@ public class Match {
         this( p, l, UUID.randomUUID());
     }
 
-    public List<ServerPlayer> getPlayerList(){
-        List<Player> playerlist = players.stream().map(level::getPlayerByUUID).toList();
+    public List<ServerPlayer> getPlayerList(Boolean rand){
+        List<Player> playerlist = new ArrayList<>(players.stream().map(level::getPlayerByUUID).toList());
+        if (rand) Collections.shuffle(playerlist);
         playerlist = playerlist.stream().filter(Objects::nonNull).toList();
         return playerlist.stream().map((entity) -> {return (ServerPlayer)entity;}).toList();
+    }
+
+    public List<ServerPlayer> getPlayerList(){
+        return getPlayerList(false);
     }
 
     public void setTeamColors(){
@@ -131,6 +145,11 @@ public class Match {
     }
 
     public void update(){
+        players.removeIf((u) -> {return level.getPlayerByUUID(u) == null;});
+        if (players.isEmpty()){
+            closeMatch();
+            return;
+        }
         bossbar.setPlayers(getPlayerList());
         if (inProgress){
             switch (currentState){
@@ -173,9 +192,16 @@ public class Match {
                 bossbar.setVisible(false);
             }
             results = TurfScannerItem.scanTurf(level, level, stage.cornerA, stage.cornerB, 1, getPlayerList());
+            scores = results.getScores();
             cutsceneTime = (int)(Config.Data.introLength.get() * 20);
         }else if(cutsceneTime > 0){
-            //middle code to be added
+            TextComponent scoreText = new TextComponent("");
+            for (Map.Entry<Integer, Integer> score : scores.entrySet()){
+                scoreText.append(new TextComponent((int)(((float)score.getValue() / (float)results.getScanVolume()) * 100) + "%" + " ").withStyle(Style.EMPTY.withColor(score.getKey())));
+            }
+            for (Player player : getPlayerList()){
+                player.displayClientMessage(scoreText, true);
+            }
         }else{
             currentState = matchStates.intro;
             inProgress = false;
@@ -184,8 +210,21 @@ public class Match {
                 playerCaps.lobbyStatus = CapInfo.lobbyStates.notReady;
 
                 SpawnCommand.tpToSpawn(player, true, true);
+                playerCaps.cash += Config.Data.cashPayout.get();
+                if (ColorUtils.getPlayerColor(player) == results.getCommandResult()){
+                    playerCaps.cash += Config.Data.winBonus.get();
+                }
+                ColorUtils.setPlayerColor(player, playerCaps.preferredColor);
             }
             bossbar.setVisible(true);
+
+            ChunkPos pos1 = level.getChunkAt(stage.cornerA).getPos();
+            ChunkPos pos2 = level.getChunkAt(stage.cornerB).getPos();
+            for (int x = 0; x < Math.abs(pos2.x - pos1.x); x++){
+                for (int z = 0; z < Math.abs(pos2.z - pos1.z); z++){
+                    ForgeChunkManager.forceChunk(level, "splatdata", stage.cornerA, x, z, false, false);
+                }
+            }
         }
         cutsceneTime--;
     }
@@ -254,7 +293,7 @@ public class Match {
         caps.lobbyStatus = CapInfo.lobbyStates.out;
         caps.match = null;
         if (tp || inProgress) SpawnCommand.tpToSpawn(p, true, true);
-        if (players.isEmpty()){
+        if (getPlayerList().isEmpty()){
             closeMatch();
         }
     }
@@ -343,7 +382,7 @@ public class Match {
 
         ArrayList<String> votes = new ArrayList<>(getPlayerList().stream().map((p) -> {
             return Capabilities.get(p).vote;
-        }).filter(validStages::containsKey).toList());
+        }).filter((s) -> {return validStages.containsKey(s) || s.equals("Random");}).toList());
 
         if (validStages.isEmpty()){
             broadcast(new TextComponent("All stages are currently in use! Please wait and try again later!").withStyle(ChatFormatting.RED));
@@ -352,7 +391,9 @@ public class Match {
 
         boolean validStage = false;
         if (votes.size() / players.size() >= Config.Data.varietyRequirement.get() / 100){
-            validStage = setStage(votes.get(level.random.nextInt(votes.size())));
+            String vote = votes.get(level.random.nextInt(votes.size()));
+            if (vote.equals("Random")) vote = validStages.get((String)validStages.keySet().toArray()[level.random.nextInt(validStages.size())]).id;
+            validStage = setStage(vote);
         }else{
             broadcast(new TextComponent("Not enough players have a valid vote, choosing randomly from all maps").withStyle(ChatFormatting.YELLOW));
             validStage = setStage((String) validStages.keySet().toArray()[level.random.nextInt(validStages.size())]);
@@ -369,8 +410,16 @@ public class Match {
 
         if (Config.Data.randomColors.get()) setTeamColors();
 
+//        ChunkPos pos1 = level.getChunkAt(stage.cornerA).getPos();
+//        ChunkPos pos2 = level.getChunkAt(stage.cornerB).getPos();
+//        for (int x = 0; x < Math.abs(pos2.x - pos1.x); x++){
+//            for (int z = 0; z < Math.abs(pos2.z - pos1.z); z++){
+//                ForgeChunkManager.forceChunk(level, "splatdata", stage.cornerA, x, z, true, false);
+//            }
+//        }
+
         int teamAssign = 0;
-        for (ServerPlayer player : getPlayerList()) {
+        for (ServerPlayer player : getPlayerList(true)) {
             CapInfo caps = Capabilities.get(player);
             player.setHealth(player.getMaxHealth());
             switch (caps.lobbyStatus) {
@@ -401,35 +450,6 @@ public class Match {
 
         inProgress = true;
     }
-
-//    public CompoundTag writeNBT(CompoundTag compoundTag) {
-//        //finish this
-//        ListTag ids = new ListTag();
-//        for (Player player : players){
-//            IntArrayTag currentID = NbtUtils.createUUID(player.getUUID());
-//            ids.add(players.indexOf(player), currentID);
-//        }
-//        compoundTag.putInt("time",timeLeft);
-//        compoundTag.putString("stage", stageID);
-//        compoundTag.put("players", ids);
-//        compoundTag.putUUID("id",id);
-//        return compoundTag;
-//    }
-//
-//    public static Match readNBT(CompoundTag nbt , Level owner) {
-//        ServerLevel level = (ServerLevel)owner;
-//        if (level == null) throw new NullPointerException("Null level!");
-//        ListTag ids = nbt.getList("players", Tag.TAG_COMPOUND);
-//        ArrayList<Player> players = new ArrayList<Player>();
-//        for (Tag id : ids){
-//            ServerPlayer p = (ServerPlayer)level.getPlayerByUUID(NbtUtils.loadUUID(id));
-//            if (p == null){
-//                continue;
-//            }
-//            players.add(p);
-//        }
-//        return new Match(nbt.getString("stage"), players, level, nbt.getUUID("id"));
-//    }
 
     public boolean playerInvolved(Player player){
         return players.contains(player.getUUID());

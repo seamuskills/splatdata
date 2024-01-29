@@ -6,9 +6,11 @@ import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber
 public class DatapackHandler {
-    public static final StageDataListener listener = new StageDataListener();
+    public static final StageDataListener stageListener = new StageDataListener();
+    public static final ShopDataListener shopListener = new ShopDataListener();
     @SubscribeEvent
     public static void addReloadListener(AddReloadListenerEvent event){
-        event.addListener(listener);
+        event.addListener(stageListener);
+        event.addListener(shopListener);
     }
 }

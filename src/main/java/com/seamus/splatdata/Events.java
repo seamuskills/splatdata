@@ -13,26 +13,32 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraftforge.client.event.RenderPlayerEvent;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.server.ServerLifecycleHooks;
+import net.splatcraft.forge.data.capabilities.playerinfo.PlayerInfoCapability;
+import net.splatcraft.forge.registries.SplatcraftCapabilities;
+import net.splatcraft.forge.registries.SplatcraftItems;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.UUID;
+import java.util.*;
 
 @Mod.EventBusSubscriber(modid="splatdata")
 public class Events {
@@ -101,12 +107,51 @@ public class Events {
         bossEvents.removeIf(bossEvent -> bossEvent.getTextId().getNamespace().equals("splatdata"));
     }
 
+    //figure out later, invisible players to replace spectator mode
+//    @SubscribeEvent
+//    public static void playerRenderStart(RenderPlayerEvent.Pre event){
+//        if (!Capabilities.hasCapability(event.getPlayer())) return;
+//        System.out.println("render event");
+//        Player player = event.getPlayer();
+//        CapInfo info = Capabilities.get(player);
+//        if (info.inMatch()){
+//            Match.matchStates state = WorldCaps.get(player.level).activeMatches.get(info.match).currentState;
+//            System.out.println(state);
+//            if (state == Match.matchStates.intro || state == Match.matchStates.ending){
+//                event.setCanceled(true);
+//            }
+//        }
+//    }
+//
+//    @SubscribeEvent
+//    public static void useItem(PlayerInteractEvent.RightClickItem event){
+//        if (!(event.getEntity() instanceof Player player)) return;
+//        if (!Capabilities.hasCapability(player)) return;
+//        CapInfo info = Capabilities.get(player);
+//        if (info.inMatch()){
+//            Match.matchStates state = WorldCaps.get(player.level).activeMatches.get(info.match).currentState;
+//            if (state == Match.matchStates.intro || state == Match.matchStates.ending){
+//                event.setCanceled(true);
+//            }
+//        }
+//    }
+
     @SubscribeEvent
     public static void playerTick(TickEvent.PlayerTickEvent event){
-        if (event.phase == TickEvent.Phase.START)
+        if (event.phase == TickEvent.Phase.START && event.player.level.isInWorldBounds(new BlockPos(event.player.position())))
             deathPos.put(event.player.getUUID(), new double[]{event.player.position().x, event.player.position().y, event.player.position().z, event.player.getXRot(), event.player.getYHeadRot()});
         if (event.player.level.isClientSide || event.phase == (TickEvent.Phase.END)){
             return;
+        }
+        if (Config.Data.forceInkTanks.get()){
+            Set<Item> jrWeapons = new HashSet<>();
+            jrWeapons.add(SplatcraftItems.splattershotJr.get());
+            jrWeapons.add(SplatcraftItems.kensaSplattershotJr.get());
+            if (event.player.getInventory().hasAnyOf(jrWeapons)){
+                event.player.getInventory().setItem(102, new ItemStack(SplatcraftItems.inkTankJr.get()));
+            }else{
+                event.player.getInventory().setItem(102, new ItemStack(SplatcraftItems.classicInkTank.get()));
+            }
         }
         if (Capabilities.hasCapability(event.player)){
             CapInfo capInfo = Capabilities.get(event.player);
@@ -117,6 +162,13 @@ public class Events {
                 SpawnCommand.tpToSpawn((ServerPlayer) event.player, true, true);
                 event.player.sendMessage(new TextComponent("A communication error has occurred.").withStyle(ChatFormatting.RED), event.player.getUUID());
                 capInfo.lobbyStatus = CapInfo.lobbyStates.out;
+            }else if (worldCaps.activeMatches.containsKey(capInfo.match)){
+                if (!worldCaps.activeMatches.get(capInfo.match).players.contains(event.player.getUUID())){
+                    capInfo.match = null;
+                    SpawnCommand.tpToSpawn((ServerPlayer) event.player, true, true);
+                    event.player.sendMessage(new TextComponent("A communication error has occurred.").withStyle(ChatFormatting.RED), event.player.getUUID());
+                    capInfo.lobbyStatus = CapInfo.lobbyStates.out;
+                }
             }
 
             //lobby code
@@ -179,7 +231,6 @@ public class Events {
     public static void respawnEvent(PlayerEvent.PlayerRespawnEvent event){
         double[] oldPos = deathPos.get(event.getPlayer().getUUID());
         ServerPlayer serverPlayer = (ServerPlayer)event.getPlayer();
-
         serverPlayer.teleportTo((ServerLevel)serverPlayer.level,oldPos[0], oldPos[1], oldPos[2], (float)oldPos[4], (float)oldPos[3]);
     }
 

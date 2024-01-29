@@ -40,8 +40,9 @@ public class SpawnCommand {
         }
         if (foilRespawn){
             playerCaps.respawnTimeTicks = -1;
-            p.setGameMode(GameType.ADVENTURE);
+            if (p.isSpectator()) p.setGameMode(GameType.ADVENTURE);
         }
+        p.setHealth(20);
 
         if (setspawn) p.setRespawnPosition(Level.OVERWORLD,new BlockPos(p.position()), 0, true, false);
     }
