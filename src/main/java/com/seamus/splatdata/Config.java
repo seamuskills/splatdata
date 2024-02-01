@@ -34,15 +34,15 @@ public class Config {
         public static ForgeConfigSpec.IntValue cashPayout;
         public static ForgeConfigSpec.IntValue winBonus;
         public static void init(ForgeConfigSpec.Builder builder){
-            respawnTime = builder.comment("How long the respawn time is (in seconds)").defineInRange("splatcraftdata.respawntime", 7.0f ,0.0d, Double.MAX_VALUE);
-            matchTime = builder.comment("How long (in seconds) a match should last").defineInRange("splatcraftdata.matchTime", 180, 1, Double.MAX_VALUE);
-            varietyRequirement = builder.comment("The percentage of player votes that must be valid before the stage is chosen randomly.").defineInRange("splatcraftdata.voteRequirement", 50, 1, 100);
-            readyToStartTime = builder.comment("How many seconds until a match starts after everyone is ready").defineInRange("splatcraftdata.readyToStartTime", 5, 0.1, Double.MAX_VALUE);
-            introLength = builder.comment("How many seconds the intro cutscene should take before the match begins").defineInRange("splatcraftdata.introLength", 5, 1, Double.MAX_VALUE);
-            randomColors = builder.comment("Whether teams should be of random colors when a match starts on a given stage. Will destroy original colors used!").define("splatdata.randomColors",true);
-            forceInkTanks = builder.comment("Whether to force the players to wear an ink tank").define("splatdata.forceInkTanks", true);
-            cashPayout = builder.comment("The amount of cash awarded to a player when they finish a match").defineInRange("splatdata.payout", 10, 0, Integer.MAX_VALUE);
-            winBonus = builder.comment("The amount of extra cash a player will get for winning a match").defineInRange("splatdata.winBonus", 5, 0, Integer.MAX_VALUE);
+            respawnTime = builder.comment("How long the respawn time is (in seconds)").defineInRange("splatdata.respawn.respawntime", 7.0f ,0.0d, Double.MAX_VALUE);
+            matchTime = builder.comment("How long (in seconds) a match should last").defineInRange("splatdata.match.matchTime", 180, 1, Double.MAX_VALUE);
+            varietyRequirement = builder.comment("The percentage of player votes that must be valid before the stage is chosen randomly.").defineInRange("splatdata.command.voteRequirement", 50, 1, 100);
+            readyToStartTime = builder.comment("How many seconds until a match starts after everyone is ready").defineInRange("splatdata.match.readyToStartTime", 5, 0.1, Double.MAX_VALUE);
+            introLength = builder.comment("How many seconds the intro cutscene should take before the match begins").defineInRange("splatdata.match.introLength", 5, 1, Double.MAX_VALUE);
+            randomColors = builder.comment("Whether teams should be of random colors when a match starts on a given stage. Will destroy original colors used!").define("splatdata.match.randomColors",true);
+            forceInkTanks = builder.comment("Whether to force the players to wear an ink tank").define("splatdata.misc.forceInkTanks", true);
+            cashPayout = builder.comment("The amount of cash awarded to a player when they finish a match").defineInRange("splatdata.match.payout", 10, 0, Integer.MAX_VALUE);
+            winBonus = builder.comment("The amount of extra cash a player will get for winning a match").defineInRange("splatdata.match.winBonus", 5, 0, Integer.MAX_VALUE);
         }
     }
 }

@@ -34,6 +34,7 @@ import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.server.ServerLifecycleHooks;
+import net.splatcraft.forge.data.SplatcraftTags;
 import net.splatcraft.forge.data.capabilities.playerinfo.PlayerInfoCapability;
 import net.splatcraft.forge.registries.SplatcraftCapabilities;
 import net.splatcraft.forge.registries.SplatcraftItems;
@@ -147,9 +148,9 @@ public class Events {
             Set<Item> jrWeapons = new HashSet<>();
             jrWeapons.add(SplatcraftItems.splattershotJr.get());
             jrWeapons.add(SplatcraftItems.kensaSplattershotJr.get());
-            if (event.player.getInventory().hasAnyOf(jrWeapons)){
+            if (event.player.getInventory().hasAnyOf(jrWeapons) && !event.player.getInventory().getItem(102).sameItem(new ItemStack(SplatcraftItems.inkTankJr.get()))){
                 event.player.getInventory().setItem(102, new ItemStack(SplatcraftItems.inkTankJr.get()));
-            }else{
+            }else if (!event.player.getInventory().getItem(102).sameItem(new ItemStack(SplatcraftItems.inkTank.get()))){
                 event.player.getInventory().setItem(102, new ItemStack(SplatcraftItems.classicInkTank.get()));
             }
         }
@@ -187,13 +188,15 @@ public class Events {
 
             //respawn timer code
             if (capInfo.respawnTimeTicks >= 0) {
+                int respawnTime = (int) (Config.Data.respawnTime.get() * 20);
+                if (capInfo.inMatch()) respawnTime = (int)(worldCaps.activeMatches.get(capInfo.match).gameType.respawnTime * 20);
                 //if an admin sets their own gamemode (or someone elses) to non-spec I want the respawn timer to get out of the way.
                 if (((ServerPlayer)event.player).gameMode.getGameModeForPlayer() != GameType.SPECTATOR){
                     capInfo.respawnTimeTicks = -1;
                     return;
                 }
                 capInfo.respawnTimeTicks--;
-                if (capInfo.respawnTimeTicks < (Config.Data.respawnTime.get() * 20) * 0.7) {
+                if (capInfo.respawnTimeTicks < respawnTime * 0.7) {
                     event.player.displayClientMessage(new TextComponent("Respawn in " + ((capInfo.respawnTimeTicks / 20) + 1)), true);
                 }else{
                     event.player.displayClientMessage(new TextComponent(Capabilities.get(event.player).deathMessage).withStyle(ChatFormatting.DARK_RED), true);

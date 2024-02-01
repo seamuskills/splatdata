@@ -2,6 +2,7 @@ package com.seamus.splatdata;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.seamus.splatdata.commands.SpawnCommand;
+import com.seamus.splatdata.datapack.GameTypeListener;
 import com.seamus.splatdata.datapack.StageData;
 import com.seamus.splatdata.datapack.StageDataListener;
 import net.minecraft.ChatFormatting;
@@ -64,7 +65,9 @@ public class Match {
     public matchStates currentState = matchStates.intro;
     public TurfScannerItem.TurfScanResult results;
     public TreeMap<Integer, Integer> scores;
+    public com.seamus.splatdata.datapack.GameType gameType;
     public Match(ArrayList<ServerPlayer> p, ServerLevel l, UUID matchid){
+        gameType = GameTypeListener.gameTypes.get("turfWar");
         if (!p.isEmpty()) {
             players = (ArrayList<UUID>) p.stream().map(Entity::getUUID).toList();
         }else{
@@ -77,6 +80,9 @@ public class Match {
         bossbar = bossEvents.create(new ResourceLocation("splatdata", id.toString()), new TextComponent("[if you can see this report it please]"));
         bossbar.setVisible(true);
         bossbar.setColor(BossEvent.BossBarColor.GREEN);
+    }
+    public Match(ArrayList<ServerPlayer> p, ServerLevel l) {
+        this( p, l, UUID.randomUUID());
     }
 
     public void closeMatch(){
@@ -114,10 +120,6 @@ public class Match {
         }else{
             return false;
         }
-    }
-
-    public Match(ArrayList<ServerPlayer> p, ServerLevel l) {
-        this( p, l, UUID.randomUUID());
     }
 
     public List<ServerPlayer> getPlayerList(Boolean rand){
