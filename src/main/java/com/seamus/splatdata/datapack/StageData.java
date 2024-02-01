@@ -6,7 +6,7 @@ import net.minecraft.world.item.ItemStack;
 import java.util.ArrayList;
 
 //format:
-//data/splatdata/stage/stagename.json
+//data/splatdata/stage/stage-name.json
 //{
 //      "id":  "stage id from /stage",
 //      "author": {

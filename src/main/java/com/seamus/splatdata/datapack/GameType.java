@@ -1,16 +1,5 @@
 package com.seamus.splatdata.datapack;
 
-import com.seamus.splatdata.CapInfo;
-import com.seamus.splatdata.Capabilities;
-import com.seamus.splatdata.Match;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.scores.Team;
-import net.splatcraft.forge.util.ColorUtils;
-
-import java.util.ArrayList;
-import java.util.List;
-
 public class GameType {
     public float respawnTime;
     public float matchTime;

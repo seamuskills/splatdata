@@ -8,5 +8,5 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 @Mixin(DispenserMenu.class)
 public interface DispenserAccessor {
     @Accessor
-    public Container getDispenser();
+    Container getDispenser();
 }

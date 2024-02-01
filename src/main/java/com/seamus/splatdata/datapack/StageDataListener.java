@@ -12,9 +12,9 @@ import net.minecraft.util.GsonHelper;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.level.storage.loot.Deserializers;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,7 +29,7 @@ public class StageDataListener extends SimpleJsonResourceReloadListener {
     }
 
     @Override
-    protected void apply(Map<ResourceLocation, JsonElement> resourceMap, ResourceManager resourceManager, ProfilerFiller profilerFiller) {
+    protected void apply(Map<ResourceLocation, JsonElement> resourceMap, @NotNull ResourceManager resourceManager, @NotNull ProfilerFiller profilerFiller) {
         stages.clear();
         for (JsonElement json : resourceMap.values()){
             ArrayList<String> ignoredTeams;

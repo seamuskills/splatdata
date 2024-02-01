@@ -1,12 +1,13 @@
 package com.seamus.splatdata.commands;
 
 import com.mojang.brigadier.CommandDispatcher;
-import com.seamus.splatdata.menus.*;
+import com.seamus.splatdata.menus.MainMenu;
+import com.seamus.splatdata.menus.RoomMenuMain;
+import com.seamus.splatdata.menus.ShopMenu;
+import com.seamus.splatdata.menus.VoteMenu;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Player;
 
 public class MenuCommand {
     public MenuCommand(CommandDispatcher<CommandSourceStack> dispatcher){

@@ -1,7 +1,6 @@
 package com.seamus.splatdata.menus.buttons.roomMenu;
 
 import com.seamus.splatdata.commands.RoomCommand;
-import com.seamus.splatdata.menus.MenuContainer;
 import com.seamus.splatdata.menus.buttons.MenuButton;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;

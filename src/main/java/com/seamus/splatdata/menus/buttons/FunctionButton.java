@@ -1,6 +1,5 @@
 package com.seamus.splatdata.menus.buttons;
 
-import com.seamus.splatdata.commands.RoomCommand;
 import com.seamus.splatdata.menus.MenuContainer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -31,6 +30,6 @@ public class FunctionButton extends MenuButton
     }
 
     public interface ExecutableFunction{
-        public void execute(ServerPlayer player);
-    };
+        void execute(ServerPlayer player);
+    }
 }

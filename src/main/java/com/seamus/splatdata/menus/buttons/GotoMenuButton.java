@@ -7,7 +7,7 @@ import net.minecraft.world.item.ItemStack;
 
 public class GotoMenuButton extends MenuButton
 {
-    public final MenuFactory targetMenu;
+    public final MenuFactory<? extends MenuContainer> targetMenu;
     public GotoMenuButton(ItemStack displayItem, Component displayText, MenuFactory<? extends MenuContainer> targetMenu)
     {
         super(displayItem, displayText);

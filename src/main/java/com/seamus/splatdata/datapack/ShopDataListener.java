@@ -8,12 +8,11 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.profiling.ProfilerFiller;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.level.storage.loot.Deserializers;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 
 public class ShopDataListener extends SimpleJsonResourceReloadListener {
@@ -25,7 +24,7 @@ public class ShopDataListener extends SimpleJsonResourceReloadListener {
     }
 
     @Override
-    protected void apply(Map<ResourceLocation, JsonElement> resourceLocationJsonElementMap, ResourceManager resourceManager, ProfilerFiller profilerFiller) {
+    protected void apply(Map<ResourceLocation, JsonElement> resourceLocationJsonElementMap, @NotNull ResourceManager resourceManager, @NotNull ProfilerFiller profilerFiller) {
         shopItems.clear();
         for (Map.Entry<ResourceLocation, JsonElement> json: resourceLocationJsonElementMap.entrySet()){
             shopItems.add(new ShopItem(ShapedRecipe.itemStackFromJson(json.getValue().getAsJsonObject().getAsJsonObject("reward")), GsonHelper.getAsInt((JsonObject) json.getValue(), "cost"), json.getKey()));

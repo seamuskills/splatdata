@@ -1,23 +1,11 @@
 package com.seamus.splatdata.menus;
 
-import com.seamus.splatdata.CapInfo;
-import com.seamus.splatdata.Capabilities;
-import com.seamus.splatdata.WorldCaps;
-import com.seamus.splatdata.commands.RoomCommand;
 import com.seamus.splatdata.menus.buttons.FunctionButton;
-import com.seamus.splatdata.menus.buttons.GotoMenuButton;
 import com.seamus.splatdata.menus.buttons.MenuButton;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.Blocks;
-import net.splatcraft.forge.registries.SplatcraftItems;
-
-import java.util.List;
 
 public class MultiPageMenu extends MenuContainer{
     int page;

@@ -10,12 +10,10 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.splatcraft.forge.registries.SplatcraftItems;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class ShopMenu  extends MultiPageMenu{
     public ShopMenu(ServerPlayer p, int page){
@@ -50,7 +48,7 @@ public class ShopMenu  extends MultiPageMenu{
     }
 
     public static boolean purchase(ServerPlayer player, ShopItem item){
-        if (!ShopDataListener.shopItems.stream().map((i) -> {return i.id;}).toList().contains(item.id)){
+        if (!ShopDataListener.shopItems.stream().map((i) -> i.id).toList().contains(item.id)){
             throw new IllegalStateException("Attempted to purchase item that doesn't exist in the shop!");
         }
         CapInfo caps = Capabilities.get(player);
