@@ -15,7 +15,7 @@ import java.util.Map;
 
 public class GameTypeListener extends SimpleJsonResourceReloadListener {
     private static final Gson gsonInstance = Deserializers.createFunctionSerializer().create();
-    private static final String gameTypePath = "gameTypes";
+    private static final String gameTypePath = "game_types";
     public GameTypeListener() {
         super(gsonInstance, gameTypePath);
     }

@@ -1,5 +1,5 @@
 {
-  "respawnTime" : 5.0,
+  "respawnTime" : 7.0,
   "maxTimer": 3600,
   "respawnMode": "normal",
   "winCondition": "turf"

@@ -67,7 +67,7 @@ public class Match {
     public TreeMap<Integer, Integer> scores;
     public com.seamus.splatdata.datapack.GameType gameType;
     public Match(ArrayList<ServerPlayer> p, ServerLevel l, UUID matchid){
-        gameType = GameTypeListener.gameTypes.get("turfWar");
+        gameType = GameTypeListener.gameTypes.get("splatdata:turfwar");
         if (!p.isEmpty()) {
             players = (ArrayList<UUID>) p.stream().map(Entity::getUUID).toList();
         }else{

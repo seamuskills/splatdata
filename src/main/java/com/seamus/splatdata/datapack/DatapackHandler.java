@@ -8,9 +8,11 @@ import net.minecraftforge.fml.common.Mod;
 public class DatapackHandler {
     public static final StageDataListener stageListener = new StageDataListener();
     public static final ShopDataListener shopListener = new ShopDataListener();
+    public static final GameTypeListener gameTypeListener = new GameTypeListener();
     @SubscribeEvent
     public static void addReloadListener(AddReloadListenerEvent event){
         event.addListener(stageListener);
         event.addListener(shopListener);
+        event.addListener(gameTypeListener);
     }
 }
