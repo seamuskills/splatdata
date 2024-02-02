@@ -306,6 +306,7 @@ public class Match {
         caps.lobbyStatus = CapInfo.lobbyStates.out;
         caps.match = null;
         caps.waveRespawning = false;
+        ColorUtils.setPlayerColor(p, caps.preferredColor);
         if (tp || inProgress) SpawnCommand.tpToSpawn(p, true, true);
         if (getPlayerList().isEmpty()){
             closeMatch();

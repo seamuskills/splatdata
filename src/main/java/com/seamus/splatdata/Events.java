@@ -29,6 +29,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.server.ServerLifecycleHooks;
 import net.splatcraft.forge.registries.SplatcraftItems;
+import net.splatcraft.forge.util.ColorUtils;
 
 import java.util.*;
 
@@ -156,6 +157,7 @@ public class Events {
                 event.player.sendMessage(new TextComponent("A communication error has occurred.").withStyle(ChatFormatting.RED), event.player.getUUID());
                 capInfo.lobbyStatus = CapInfo.lobbyStates.out;
                 capInfo.waveRespawning = false;
+                ColorUtils.setPlayerColor(event.player, capInfo.preferredColor);
             }else if (worldCaps.activeMatches.containsKey(capInfo.match)){
                 if (!worldCaps.activeMatches.get(capInfo.match).players.contains(event.player.getUUID())){
                     capInfo.match = null;
@@ -163,6 +165,7 @@ public class Events {
                     event.player.sendMessage(new TextComponent("A communication error has occurred.").withStyle(ChatFormatting.RED), event.player.getUUID());
                     capInfo.lobbyStatus = CapInfo.lobbyStates.out;
                     capInfo.waveRespawning = false;
+                    ColorUtils.setPlayerColor(event.player, capInfo.preferredColor);
                 }
             }
 
