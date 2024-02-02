@@ -1,0 +1,6 @@
+{
+  "respawnTime" : 7.0,
+  "timerMax": 180,
+  "respawnMode": "wave",
+  "winCondition": "turf"
+}

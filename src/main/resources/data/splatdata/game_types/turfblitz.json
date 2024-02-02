@@ -1,0 +1,6 @@
+{
+  "respawnTime" : 1.0,
+  "timerMax": 180,
+  "respawnMode": "normal",
+  "winCondition": "turf"
+}
