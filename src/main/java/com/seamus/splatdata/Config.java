@@ -34,8 +34,8 @@ public class Config {
         public static ForgeConfigSpec.IntValue cashPayout;
         public static ForgeConfigSpec.IntValue winBonus;
         public static void init(ForgeConfigSpec.Builder builder){
-            respawnTime = builder.comment("How long the respawn time is (in seconds)").defineInRange("splatdata.respawn.respawntime", 7.0f ,0.0d, Double.MAX_VALUE);
-            matchTime = builder.comment("How long (in seconds) a match should last").defineInRange("splatdata.match.matchTime", 180, 1, Double.MAX_VALUE);
+            respawnTime = builder.comment("How long the respawn time is (in seconds) used when a player is not in a match").defineInRange("splatdata.respawn.respawntime", 7.0f ,0.0d, Double.MAX_VALUE);
+            matchTime = builder.comment("How long (in seconds) a match should last when the game type doesn't specify").defineInRange("splatdata.match.matchTime", 180, 1, Double.MAX_VALUE);
             varietyRequirement = builder.comment("The percentage of player votes that must be valid before the stage is chosen randomly.").defineInRange("splatdata.command.voteRequirement", 50, 1, 100);
             readyToStartTime = builder.comment("How many seconds until a match starts after everyone is ready").defineInRange("splatdata.match.readyToStartTime", 5, 0.1, Double.MAX_VALUE);
             introLength = builder.comment("How many seconds the intro cutscene should take before the match begins").defineInRange("splatdata.match.introLength", 5, 1, Double.MAX_VALUE);

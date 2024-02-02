@@ -1,6 +1,7 @@
 package com.seamus.splatdata;
 
 import com.seamus.splatdata.commands.*;
+import com.seamus.splatdata.datapack.MatchGameType;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -148,17 +149,20 @@ public class Events {
             CapInfo capInfo = Capabilities.get(event.player);
             WorldInfo worldCaps = WorldCaps.get(event.player.level);
 
+            //check if the player is in a match invalidly
             if (!(worldCaps.activeMatches.containsKey(capInfo.match)) && capInfo.inMatch()){
                 capInfo.match = null;
                 SpawnCommand.tpToSpawn((ServerPlayer) event.player, true, true);
                 event.player.sendMessage(new TextComponent("A communication error has occurred.").withStyle(ChatFormatting.RED), event.player.getUUID());
                 capInfo.lobbyStatus = CapInfo.lobbyStates.out;
+                capInfo.waveRespawning = false;
             }else if (worldCaps.activeMatches.containsKey(capInfo.match)){
                 if (!worldCaps.activeMatches.get(capInfo.match).players.contains(event.player.getUUID())){
                     capInfo.match = null;
                     SpawnCommand.tpToSpawn((ServerPlayer) event.player, true, true);
                     event.player.sendMessage(new TextComponent("A communication error has occurred.").withStyle(ChatFormatting.RED), event.player.getUUID());
                     capInfo.lobbyStatus = CapInfo.lobbyStates.out;
+                    capInfo.waveRespawning = false;
                 }
             }
 
@@ -179,14 +183,23 @@ public class Events {
             //respawn timer code
             if (capInfo.respawnTimeTicks >= 0) {
                 int respawnTime = (int) (Config.Data.respawnTime.get() * 20);
-                if (capInfo.inMatch()) respawnTime = (int)(worldCaps.activeMatches.get(capInfo.match).gameType.respawnTime * 20);
+                boolean respawnQual = true;
+                if (capInfo.inMatch()){
+                    MatchGameType.respawnMode rmode = worldCaps.activeMatches.get(capInfo).matchGameType.rMode;
+                    respawnQual = rmode != MatchGameType.respawnMode.disabled && (rmode != MatchGameType.respawnMode.wave || capInfo.waveRespawning);
+                    if (respawnQual){
+                        capInfo.respawnTimeTicks--;
+                    }
+                    respawnTime = (int)(worldCaps.activeMatches.get(capInfo.match).matchGameType.respawnTime * 20);
+                }else{
+                    capInfo.respawnTimeTicks--;
+                }
                 //if an admin sets their own gamemode (or someone elses) to non-spec I want the respawn timer to get out of the way.
                 if (((ServerPlayer)event.player).gameMode.getGameModeForPlayer() != GameType.SPECTATOR){
                     capInfo.respawnTimeTicks = -1;
                     return;
                 }
-                capInfo.respawnTimeTicks--;
-                if (capInfo.respawnTimeTicks < respawnTime * 0.7) {
+                if (capInfo.respawnTimeTicks < respawnTime * 0.7 && respawnQual) {
                     event.player.displayClientMessage(new TextComponent("Respawn in " + ((capInfo.respawnTimeTicks / 20) + 1)), true);
                 }else{
                     event.player.displayClientMessage(new TextComponent(Capabilities.get(event.player).deathMessage).withStyle(ChatFormatting.DARK_RED), true);
@@ -199,6 +212,7 @@ public class Events {
                    //event.player.teleportTo(respawnPos.getX(), respawnPos.getY(), respawnPos.getZ());
                     ((ServerPlayer) event.player).connection.teleport(respawnPos.getX() + 0.5, respawnPos.getY() + SplatcraftData.blockHeight(respawnPos, event.player.getLevel()), respawnPos.getZ() + 0.5, ((ServerPlayer) event.player).getRespawnAngle(), 0.0f);
                     event.player.displayClientMessage(new TextComponent("Respawned!").withStyle(ChatFormatting.GREEN), true);
+                    capInfo.waveRespawning = false;
                 }else{
                     event.player.displayClientMessage(new TextComponent("Respawn point null!").withStyle(ChatFormatting.RED), true);
                 }
@@ -255,6 +269,7 @@ public class Events {
             }
 
             playerData.respawnTimeTicks = (int)(Config.Data.respawnTime.get() * 20);
+            if (playerData.inMatch()) playerData.respawnTimeTicks = (int)(WorldCaps.get(player.level).activeMatches.get(playerData.match).matchGameType.respawnTime * 20);
             playerData.respawnGamemode = player.gameMode.getGameModeForPlayer();
             player.setGameMode(GameType.SPECTATOR);
         }

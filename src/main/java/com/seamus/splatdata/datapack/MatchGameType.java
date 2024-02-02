@@ -1,6 +1,6 @@
 package com.seamus.splatdata.datapack;
 
-public class GameType {
+public class MatchGameType {
     public float respawnTime;
     public float matchTime;
 
@@ -9,7 +9,7 @@ public class GameType {
         turf, //turf war
         splats, //highest team splats at the end
     }
-    winCon wCondition;
+    public winCon wCondition;
 
     public enum respawnMode {
         normal, //normal behavior, die then wait and respawn
@@ -18,11 +18,11 @@ public class GameType {
         disabled //no respawning. (not recommended and will end the match if only 1 team is standing.)
     }
 
-    respawnMode rMode;
+    public respawnMode rMode;
 
-    public GameType(winCon wCondition, respawnMode rMode, float matchTime, float respawnTime){
+    public MatchGameType(winCon wCondition, respawnMode rMode, float matchTime, float respawnTime){
         this.respawnTime = respawnTime;
-        this.matchTime = matchTime;
+        this.matchTime = matchTime * 20;
         this.wCondition = wCondition;
         this.rMode = rMode;
     }

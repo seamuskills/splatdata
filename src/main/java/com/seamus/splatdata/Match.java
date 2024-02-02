@@ -1,12 +1,11 @@
 package com.seamus.splatdata;
 
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.seamus.splatdata.commands.SpawnCommand;
 import com.seamus.splatdata.datapack.GameTypeListener;
+import com.seamus.splatdata.datapack.MatchGameType;
 import com.seamus.splatdata.datapack.StageData;
 import com.seamus.splatdata.datapack.StageDataListener;
 import net.minecraft.ChatFormatting;
-import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.network.chat.*;
@@ -16,9 +15,6 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.bossevents.CustomBossEvent;
 import net.minecraft.server.bossevents.CustomBossEvents;
-import net.minecraft.server.commands.BossBarCommands;
-import net.minecraft.server.commands.SetSpawnCommand;
-import net.minecraft.server.commands.TitleCommand;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.BossEvent;
@@ -27,18 +23,14 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.world.ForgeChunkManager;
 import net.splatcraft.forge.blocks.SpawnPadBlock;
-import net.splatcraft.forge.commands.ReplaceColorCommand;
-import net.splatcraft.forge.commands.ScanTurfCommand;
 import net.splatcraft.forge.data.Stage;
 import net.splatcraft.forge.data.capabilities.saveinfo.SaveInfo;
 import net.splatcraft.forge.data.capabilities.saveinfo.SaveInfoCapability;
 import net.splatcraft.forge.items.remotes.ColorChangerItem;
 import net.splatcraft.forge.items.remotes.InkDisruptorItem;
-import net.splatcraft.forge.items.remotes.RemoteItem;
 import net.splatcraft.forge.items.remotes.TurfScannerItem;
 import net.splatcraft.forge.tileentities.SpawnPadTileEntity;
 import net.splatcraft.forge.util.ColorUtils;
@@ -65,9 +57,9 @@ public class Match {
     public matchStates currentState = matchStates.intro;
     public TurfScannerItem.TurfScanResult results;
     public TreeMap<Integer, Integer> scores;
-    public com.seamus.splatdata.datapack.GameType gameType;
+    public MatchGameType matchGameType;
     public Match(ArrayList<ServerPlayer> p, ServerLevel l, UUID matchid){
-        gameType = GameTypeListener.gameTypes.get("splatdata:turfwar");
+        matchGameType = GameTypeListener.gameTypes.get("splatdata:turfwar");
         if (!p.isEmpty()) {
             players = (ArrayList<UUID>) p.stream().map(Entity::getUUID).toList();
         }else{
@@ -152,6 +144,23 @@ public class Match {
             closeMatch();
             return;
         }
+        //waveTimer respawn qualification
+        if (matchGameType.rMode == MatchGameType.respawnMode.wave || matchGameType.rMode == MatchGameType.respawnMode.waveOrTimed) {
+            for (String t : teams) {
+                List<ServerPlayer> p = getPlayerList();
+                p.removeIf((player) -> ColorUtils.getPlayerColor(player) != stage.getTeamColor(t)); //remove all non-team members
+                p.removeIf((player) -> Capabilities.get(player).respawnTimeTicks >= 0); //remove all dead players
+                if (p.isEmpty()) {
+                    for (Player player : p) {
+                        CapInfo info = Capabilities.get(player);
+                        info.waveRespawning = true;
+                        if (matchGameType.rMode == MatchGameType.respawnMode.waveOrTimed){
+                            info.respawnTimeTicks = 0;
+                        }
+                    }
+                }
+            }
+        }
         bossbar.setPlayers(getPlayerList());
         if (inProgress){
             switch (currentState){
@@ -172,10 +181,12 @@ public class Match {
 
     private void gameplay(){
         bossbar.setMax((int)(Config.Data.matchTime.get() * 20));
+        if (matchGameType != null) bossbar.setMax((int)matchGameType.matchTime);
         bossbar.setValue(timeLeft);
         if (timeLeft == -1){
             //start of match code
             timeLeft = (int)(Config.Data.matchTime.get() * 20);
+            if (matchGameType != null) timeLeft = (int) matchGameType.matchTime;
         }else if (timeLeft > 0){
             //mid-match code
             bossbar.setName(new TextComponent("Time Left: " + ((timeLeft / 1200) % 60) + ":" + ((timeLeft / 20) % 60)));
@@ -294,6 +305,7 @@ public class Match {
         CapInfo caps = Capabilities.get(p);
         caps.lobbyStatus = CapInfo.lobbyStates.out;
         caps.match = null;
+        caps.waveRespawning = false;
         if (tp || inProgress) SpawnCommand.tpToSpawn(p, true, true);
         if (getPlayerList().isEmpty()){
             closeMatch();
