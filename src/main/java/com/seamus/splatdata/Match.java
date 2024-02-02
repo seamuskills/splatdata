@@ -58,6 +58,7 @@ public class Match {
     public TurfScannerItem.TurfScanResult results;
     public TreeMap<Integer, Integer> scores;
     public MatchGameType matchGameType;
+    public String splatWinner = "";
     public Match(ArrayList<ServerPlayer> p, ServerLevel l, UUID matchid){
         matchGameType = GameTypeListener.gameTypes.get("splatdata:turfwar");
         if (!p.isEmpty()) {
@@ -118,7 +119,7 @@ public class Match {
         List<Player> playerlist = new ArrayList<>(players.stream().map(level::getPlayerByUUID).toList());
         if (rand) Collections.shuffle(playerlist);
         playerlist = playerlist.stream().filter(Objects::nonNull).toList();
-        return playerlist.stream().map((entity) -> {return (ServerPlayer)entity;}).toList();
+        return new ArrayList<>(playerlist.stream().map((entity) -> {return (ServerPlayer)entity;}).toList());
     }
 
     public List<ServerPlayer> getPlayerList(){
@@ -204,13 +205,44 @@ public class Match {
                 player.setGameMode(GameType.SPECTATOR);
                 bossbar.setVisible(false);
             }
-            results = TurfScannerItem.scanTurf(level, level, stage.cornerA, stage.cornerB, 1, getPlayerList());
-            scores = results.getScores();
-            cutsceneTime = (int)(Config.Data.introLength.get() * 20);
-        }else if(cutsceneTime > 0){
+            switch(matchGameType.wCondition) {
+                case turf:
+                    results = TurfScannerItem.scanTurf(level, level, stage.cornerA, stage.cornerB, 1, getPlayerList());
+                    scores = results.getScores();
+                    break;
+                case splats:
+                    splatWinner = "Tie!";
+                    int highest = 0;
+                    for (String t : teams){
+                        List<ServerPlayer> players = getPlayerList();
+                        players.removeIf((p) -> ColorUtils.getPlayerColor(p) != stage.getTeamColor(t)); //todo fix, null error donno why
+                        int splatCount = 0;
+                        for (Player p : players){
+                            splatCount += Capabilities.get(p).matchSplats;
+                        }
+                        if (splatCount > highest){
+                            splatWinner = t;
+                            highest = splatCount;
+                        }else if (splatCount == highest){
+                            splatWinner = "Tie!";
+                        }
+                    }
+                    break;
+            }
+            cutsceneTime = (int) (Config.Data.introLength.get() * 20);
+        }else if(cutsceneTime > 0) {
             TextComponent scoreText = new TextComponent("");
-            for (Map.Entry<Integer, Integer> score : scores.entrySet()){
-                scoreText.append(new TextComponent((int)(((float)score.getValue() / (float)results.getScanVolume()) * 100) + "%" + " ").withStyle(Style.EMPTY.withColor(score.getKey())));
+            switch (matchGameType.wCondition) {
+                case turf:
+                    for (Map.Entry<Integer, Integer> score : scores.entrySet()) {
+                        scoreText.append(new TextComponent((int) (((float) score.getValue() / (float) results.getScanVolume()) * 100) + "%" + " ").withStyle(Style.EMPTY.withColor(score.getKey())));
+                    }
+                    break;
+                case splats:
+                    boolean validWinner = teams.contains(splatWinner);
+                    Style color = Style.EMPTY.withColor(0xffffff);
+                    if (validWinner) color = Style.EMPTY.withColor(stage.getTeamColor(splatWinner));
+                    scoreText = (TextComponent) new TextComponent(splatWinner).withStyle(color);
             }
             for (Player player : getPlayerList()){
                 player.displayClientMessage(scoreText, true);
@@ -224,8 +256,19 @@ public class Match {
 
                 SpawnCommand.tpToSpawn(player, true, true);
                 playerCaps.cash += Config.Data.cashPayout.get();
-                if (ColorUtils.getPlayerColor(player) == results.getCommandResult()){
-                    playerCaps.cash += Config.Data.winBonus.get();
+                switch (matchGameType.wCondition) {
+                    case turf:
+                        if (ColorUtils.getPlayerColor(player) == results.getCommandResult()) {
+                            playerCaps.cash += Config.Data.winBonus.get();
+                        }
+                        break;
+                    case splats:
+                        if (teams.contains(splatWinner)){
+                            if (ColorUtils.getPlayerColor(player) == stage.getTeamColor(splatWinner)){
+                                playerCaps.cash += Config.Data.winBonus.get();
+                            }
+                        }
+                        break;
                 }
                 ColorUtils.setPlayerColor(player, playerCaps.preferredColor);
             }

@@ -12,6 +12,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -188,7 +189,7 @@ public class Events {
                 int respawnTime = (int) (Config.Data.respawnTime.get() * 20);
                 boolean respawnQual = true;
                 if (capInfo.inMatch()){
-                    MatchGameType.respawnMode rmode = worldCaps.activeMatches.get(capInfo).matchGameType.rMode;
+                    MatchGameType.respawnMode rmode = worldCaps.activeMatches.get(capInfo.match).matchGameType.rMode;
                     respawnQual = rmode != MatchGameType.respawnMode.disabled && (rmode != MatchGameType.respawnMode.wave || capInfo.waveRespawning);
                     if (respawnQual){
                         capInfo.respawnTimeTicks--;
@@ -262,6 +263,9 @@ public class Events {
                 if (!killer.equals(player)) {
                     //player.sendMessage(new TextComponent("Splatted by ").withStyle(ChatFormatting.DARK_RED).append(killer.getName()), player.getUUID());
                     playerData.deathMessage = "Splatted by " + killer.getName().getString();
+                    if (killer instanceof Player){
+                        if (Capabilities.hasCapability(player)) Capabilities.get((LivingEntity) killer).matchSplats++;
+                    }
                 }else {
                     //player.sendMessage(new TextComponent("Splatted Self.").withStyle(ChatFormatting.DARK_RED), player.getUUID());
                     playerData.deathMessage = "Splatted yourself.";

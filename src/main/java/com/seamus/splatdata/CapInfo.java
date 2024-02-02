@@ -24,6 +24,7 @@ public class CapInfo {
     public ArrayList<ResourceLocation> unlockedWeapons = new ArrayList<>();
     public int cash = 0;
     public boolean waveRespawning = false;
+    public int matchSplats = 0;
     public CompoundTag writeNBT(CompoundTag compoundTag) {
         compoundTag.putInt("RespawnTicks",respawnTimeTicks);
         compoundTag.putInt("RespawnGamemode", respawnGamemode.getId());
@@ -38,6 +39,7 @@ public class CapInfo {
         compoundTag.put("purchasedItems", unlockedWeaponsTag);
         compoundTag.putInt("cash", cash);
         compoundTag.putBoolean("waveRespawn", waveRespawning);
+        compoundTag.putInt("matchSplats", matchSplats);
         return compoundTag;
     }
 
@@ -56,6 +58,7 @@ public class CapInfo {
         }
         cash = nbt.getInt("cash");
         waveRespawning = nbt.getBoolean("waveRespawn");
+        matchSplats = nbt.getInt("matchSplats");
     }
 
     public boolean inMatch(){
