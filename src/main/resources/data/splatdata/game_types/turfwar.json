@@ -1,6 +1,6 @@
 {
   "respawnTime" : 7.0,
-  "timerMax": 15.0,
+  "timerMax": 180.0,
   "respawnMode": "normal",
-  "winCondition": "splats"
+  "winCondition": "turf"
 }
