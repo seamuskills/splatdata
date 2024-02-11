@@ -1,6 +1,11 @@
 package com.seamus.splatdata.datapack;
 
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ItemStack;
+
 public class MatchGameType {
+    public Component displayName;
+    public Component description;
     public float respawnTime;
     public float matchTime;
 
@@ -20,11 +25,16 @@ public class MatchGameType {
 
     public respawnMode rMode;
 
-    public MatchGameType(winCon wCondition, respawnMode rMode, float matchTime, float respawnTime){
+    public ItemStack icon;
+
+    public MatchGameType(Component displayName, Component description, winCon wCondition, respawnMode rMode, float matchTime, float respawnTime, ItemStack icon){
         this.respawnTime = respawnTime;
         this.matchTime = matchTime * 20;
         this.wCondition = wCondition;
         this.rMode = rMode;
+        this.displayName = displayName;
+        this.description = description;
+        this.icon = icon;
     }
 
 //    public void update(Match match){

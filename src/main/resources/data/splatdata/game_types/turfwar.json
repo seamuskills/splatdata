@@ -1,4 +1,10 @@
 {
+  "displayName": {
+    "text": "Turf War"
+  },
+  "description": {
+    "text": "Ink the most turf to win."
+  },
   "respawnTime" : 7.0,
   "timerMax": 180.0,
   "respawnMode": "normal",

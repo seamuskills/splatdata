@@ -4,6 +4,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.seamus.splatdata.*;
+import com.seamus.splatdata.menus.ManageMenu;
 import com.seamus.splatdata.menus.RoomMenuMain;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
@@ -31,6 +32,14 @@ public class RoomCommand {
             command.getSource().getPlayerOrException().openMenu(new RoomMenuMain(command.getSource().getPlayerOrException()));
             return 0;
         }));
+        dispatcher.register(Commands.literal("room").then(Commands.literal("manage").executes(
+                (Command) -> openManageMenu(Command.getSource().getPlayerOrException())
+        )));
+    }
+
+    public int openManageMenu(ServerPlayer player){
+        player.openMenu(new ManageMenu(player));
+        return 0;
     }
 
     public int list(CommandContext<CommandSourceStack> command) throws CommandSyntaxException {
@@ -61,8 +70,7 @@ public class RoomCommand {
         }
         if (level != null) {
             WorldInfo worldCaps = WorldCaps.get(level);
-            Match created = new Match(new ArrayList<>(), level);
-            created.stalk(player);
+            Match created = new Match(player, level);
             worldCaps.activeMatches.put(created.id, created);
 
             playerCap.lobbyStatus = CapInfo.lobbyStates.notReady;

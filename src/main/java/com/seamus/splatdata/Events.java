@@ -217,7 +217,7 @@ public class Events {
                     ((ServerPlayer) event.player).connection.teleport(respawnPos.getX() + 0.5, respawnPos.getY() + SplatcraftData.blockHeight(respawnPos, event.player.getLevel()), respawnPos.getZ() + 0.5, ((ServerPlayer) event.player).getRespawnAngle(), 0.0f);
                     event.player.displayClientMessage(new TextComponent("Respawned!").withStyle(ChatFormatting.GREEN), true);
                     capInfo.waveRespawning = false;
-                }else{
+                }else {
                     event.player.displayClientMessage(new TextComponent("Respawn point null!").withStyle(ChatFormatting.RED), true);
                 }
                 ((ServerPlayer)event.player).setGameMode(capInfo.respawnGamemode);

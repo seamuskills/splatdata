@@ -1,4 +1,10 @@
 {
+  "displayName": {
+    "text": "Hardcore Turf War"
+  },
+  "description": {
+    "text": "Ink the most turf to win. Respawn in waves."
+  },
   "respawnTime" : 7.0,
   "timerMax": 180,
   "respawnMode": "wave",

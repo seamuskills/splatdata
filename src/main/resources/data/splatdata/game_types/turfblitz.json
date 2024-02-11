@@ -1,4 +1,10 @@
 {
+  "displayName": {
+    "text": "Turf War Blitz"
+  },
+  "description": {
+    "text": "Ink the most turf to win. Respawns are expedited!"
+  },
   "respawnTime" : 1.0,
   "timerMax": 180,
   "respawnMode": "normal",

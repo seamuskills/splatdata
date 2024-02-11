@@ -32,6 +32,7 @@ import net.splatcraft.forge.data.capabilities.saveinfo.SaveInfoCapability;
 import net.splatcraft.forge.items.remotes.ColorChangerItem;
 import net.splatcraft.forge.items.remotes.InkDisruptorItem;
 import net.splatcraft.forge.items.remotes.TurfScannerItem;
+import net.splatcraft.forge.registries.SplatcraftCommands;
 import net.splatcraft.forge.tileentities.SpawnPadTileEntity;
 import net.splatcraft.forge.util.ColorUtils;
 
@@ -59,14 +60,14 @@ public class Match {
     public TreeMap<Integer, Integer> scores;
     public MatchGameType matchGameType;
     public String splatWinner = "";
-    public Match(ArrayList<ServerPlayer> p, ServerLevel l, UUID matchid){
+    public UUID host;
+    public int[] password = {};
+    public Match(ServerPlayer p, ServerLevel l, UUID matchid){
         matchGameType = GameTypeListener.gameTypes.get("splatdata:turfwar");
-        if (!p.isEmpty()) {
-            players = (ArrayList<UUID>) p.stream().map(Entity::getUUID).toList();
-        }else{
-            players = new ArrayList<>();
-        }
         id = matchid;
+        players = new ArrayList<>();
+        stalk(p);
+        host = p.getUUID();
         level = l;
         inProgress = false;
         CustomBossEvents bossEvents = level.getServer().getCustomBossEvents();
@@ -74,7 +75,7 @@ public class Match {
         bossbar.setVisible(true);
         bossbar.setColor(BossEvent.BossBarColor.GREEN);
     }
-    public Match(ArrayList<ServerPlayer> p, ServerLevel l) {
+    public Match(ServerPlayer p, ServerLevel l) {
         this( p, l, UUID.randomUUID());
     }
 
@@ -145,23 +146,7 @@ public class Match {
             closeMatch();
             return;
         }
-        //waveTimer respawn qualification
-        if (matchGameType.rMode == MatchGameType.respawnMode.wave || matchGameType.rMode == MatchGameType.respawnMode.waveOrTimed) {
-            for (String t : teams) {
-                List<ServerPlayer> p = getPlayerList();
-                p.removeIf((player) -> ColorUtils.getPlayerColor(player) != stage.getTeamColor(t)); //remove all non-team members
-                p.removeIf((player) -> Capabilities.get(player).respawnTimeTicks >= 0); //remove all dead players
-                if (p.isEmpty()) {
-                    for (Player player : p) {
-                        CapInfo info = Capabilities.get(player);
-                        info.waveRespawning = true;
-                        if (matchGameType.rMode == MatchGameType.respawnMode.waveOrTimed){
-                            info.respawnTimeTicks = 0;
-                        }
-                    }
-                }
-            }
-        }
+
         bossbar.setPlayers(getPlayerList());
         if (inProgress){
             switch (currentState){
@@ -181,6 +166,24 @@ public class Match {
     }
 
     private void gameplay(){
+        //wave respawn code
+        if (matchGameType.rMode == MatchGameType.respawnMode.wave || matchGameType.rMode == MatchGameType.respawnMode.waveOrTimed) {
+            for (String t : teams) {
+                List<ServerPlayer> p = getPlayerList();
+                p.removeIf((player) -> ColorUtils.getPlayerColor(player) != stage.getTeamColor(t)); //remove all non-team members
+                p.removeIf((player) -> Capabilities.get(player).respawnTimeTicks >= 0); //remove all dead players
+                if (p.isEmpty()) {
+                    for (Player player : p) {
+                        CapInfo info = Capabilities.get(player);
+                        info.waveRespawning = true;
+                        if (matchGameType.rMode == MatchGameType.respawnMode.waveOrTimed){
+                            info.respawnTimeTicks = 0;
+                        }
+                    }
+                }
+            }
+        }
+
         bossbar.setMax((int)(Config.Data.matchTime.get() * 20));
         if (matchGameType != null) bossbar.setMax((int)matchGameType.matchTime);
         bossbar.setValue(timeLeft);
@@ -293,13 +296,12 @@ public class Match {
             cutsceneTime = (int)(Config.Data.introLength.get() * 20);
             for (ServerPlayer player : getPlayerList()){
                 player.setGameMode(GameType.SPECTATOR);
-                Capabilities.get(player).respawnTimeTicks = -1;
+                CapInfo caps = Capabilities.get(player);
+                caps.respawnTimeTicks = -1;
+                caps.matchSplats = 0;
             }
         }else if (cutsceneTime > 0){
-            for (ServerPlayer player : getPlayerList()){
-                Vec3 angle = player.getLookAngle().multiply(0.1, 0.1, 0.1);
-                player.teleportTo(player.position().x + angle.x, player.position().y + angle.y, player.position().z + angle.z);
-            }
+            //middle stuff
         }else{
             for (ServerPlayer player : getPlayerList()){
                 if (Capabilities.get(player).lobbyStatus != CapInfo.lobbyStates.spectator)
@@ -353,6 +355,9 @@ public class Match {
         if (tp || inProgress) SpawnCommand.tpToSpawn(p, true, true);
         if (getPlayerList().isEmpty()){
             closeMatch();
+        }else if (host == p.getUUID()){
+            host = players.get(p.level.random.nextInt(players.size()));
+            broadcast(new TextComponent("Host left the match. New host chosen: ").append(level.getPlayerByUUID(host).getName()));
         }
     }
 
@@ -447,7 +452,7 @@ public class Match {
             return;
         }
 
-        boolean validStage = false;
+        boolean validStage;
         if (votes.size() / players.size() >= Config.Data.varietyRequirement.get() / 100){
             String vote = votes.get(level.random.nextInt(votes.size()));
             if (vote.equals("Random")) vote = validStages.get((String)validStages.keySet().toArray()[level.random.nextInt(validStages.size())]).id;
