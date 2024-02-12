@@ -5,6 +5,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.seamus.splatdata.*;
 import com.seamus.splatdata.menus.ManageMenu;
+import com.seamus.splatdata.menus.PasswordMenu;
 import com.seamus.splatdata.menus.RoomMenuMain;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
@@ -18,6 +19,7 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.server.ServerLifecycleHooks;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class RoomCommand {
     public RoomCommand(CommandDispatcher<CommandSourceStack> dispatcher){
@@ -38,7 +40,11 @@ public class RoomCommand {
     }
 
     public int openManageMenu(ServerPlayer player){
-        player.openMenu(new ManageMenu(player));
+        if (Capabilities.get(player).inMatch()) {
+            player.openMenu(new ManageMenu(player));
+        }else{
+            player.sendMessage(new TextComponent("You are not in a room!").withStyle(ChatFormatting.RED), player.getUUID());
+        }
         return 0;
     }
 
@@ -108,10 +114,26 @@ public class RoomCommand {
                 player.sendMessage(new TextComponent("Room game in progress!").withStyle(ChatFormatting.RED), player.getUUID());
                 return 0;
             }
-            join.stalk(player);
-            playerCap.lobbyStatus = CapInfo.lobbyStates.notReady;
-            player.sendMessage(new TextComponent("Joined room!").withStyle(ChatFormatting.GREEN), player.getUUID());
-            join.broadcast(((TextComponent)player.getName()).append(new TextComponent("  joined.").withStyle(ChatFormatting.GREEN)));
+            final Match targetMatch = worldCaps.activeMatches.get(Capabilities.get(target).match);
+            if (targetMatch.password.length > 0) {
+                Match finalJoin = join;
+                player.openMenu(new PasswordMenu(player, (source, password) -> {
+                    int[] convertedPassword = password.stream().mapToInt(Integer::intValue).toArray();
+                    if (Arrays.equals(convertedPassword, targetMatch.password)) {
+                        finalJoin.stalk(player);
+                        playerCap.lobbyStatus = CapInfo.lobbyStates.notReady;
+                        player.sendMessage(new TextComponent("Joined room!").withStyle(ChatFormatting.GREEN), player.getUUID());
+                        finalJoin.broadcast(((TextComponent)player.getName()).append(new TextComponent("  joined.").withStyle(ChatFormatting.GREEN)));
+                    } else {
+                        player.sendMessage(new TextComponent("Incorrect Password!").withStyle(ChatFormatting.RED), player.getUUID());
+                    }
+                }));
+            }else{
+                join.stalk(player);
+                playerCap.lobbyStatus = CapInfo.lobbyStates.notReady;
+                player.sendMessage(new TextComponent("Joined room!").withStyle(ChatFormatting.GREEN), player.getUUID());
+                join.broadcast(((TextComponent)player.getName()).append(new TextComponent("  joined.").withStyle(ChatFormatting.GREEN)));
+            }
         }else{
             player.sendMessage(new TextComponent("null level!").withStyle(ChatFormatting.RED), player.getUUID());
         }

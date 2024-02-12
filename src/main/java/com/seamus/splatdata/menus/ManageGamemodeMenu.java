@@ -20,7 +20,7 @@ import java.util.ArrayList;
 
 public class ManageGamemodeMenu extends MultiPageMenu{
     public ManageGamemodeMenu(ServerPlayer player, int page) {
-        super(player, page);
+        super(player, page, new TextComponent("Set game type"));
     }
 
     @Override

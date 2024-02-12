@@ -10,8 +10,8 @@ import net.minecraft.world.item.Items;
 public class MultiPageMenu extends MenuContainer{
     int page;
     MenuButton[] buttons = {};
-    public MultiPageMenu(ServerPlayer player, int page) {
-        super(MenuSize.SIZE_6X9, new TextComponent("select player to join"), player);
+    public MultiPageMenu(ServerPlayer player, int page, TextComponent name) {
+        super(MenuSize.SIZE_6X9, name, player);
         this.page = page;
     }
 

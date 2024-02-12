@@ -23,7 +23,6 @@ public class PasswordMenu extends MenuContainer{
     public void init2(ServerPlayer player) {
         addButton(0, new FunctionButton(new ItemStack(Items.GREEN_WOOL), new TextComponent("Confirm: " + Arrays.toString(password.toArray())), (p) -> {
             func.execute(p, password);
-            player.sendMessage(new TextComponent("Password set!").withStyle(ChatFormatting.GREEN), player.getUUID());
             p.closeContainer();
         }));
         for (int i = 0; i < 10; i++){

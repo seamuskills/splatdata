@@ -48,7 +48,10 @@ public class ManageMenu extends MenuContainer{
                 addButton(1, new FunctionButton(new ItemStack(Items.ENDER_PEARL), new TextComponent("Switch gamemodes"), (p) -> p.openMenu(new ManageGamemodeMenu(p, 0))));
             }
             addButton(2, new FunctionButton(new ItemStack(Items.TRIPWIRE_HOOK), new TextComponent("Set Password"), (p) -> {
-                p.openMenu(new PasswordMenu(p, (target, password) -> match.password = password.stream().mapToInt(Integer::intValue).toArray()));
+                p.openMenu(new PasswordMenu(p, (target, password) -> {
+                    match.password = password.stream().mapToInt(Integer::intValue).toArray();
+                    player.sendMessage(new TextComponent("Password set!").withStyle(ChatFormatting.GREEN), player.getUUID());
+                }));
             }));
             addButton(3, new FunctionButton(new ItemStack(SplatcraftItems.splatBomb.get()), new TextComponent("Kick Player"), (p) -> {
                 p.openMenu(new ManageMenuKick(p, 0));

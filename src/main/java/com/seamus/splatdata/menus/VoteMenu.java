@@ -16,7 +16,7 @@ import java.util.ArrayList;
 public class VoteMenu extends MultiPageMenu{
     public int page = 0;
     public VoteMenu(ServerPlayer player, int page) {
-        super(player, page);
+        super(player, page, new TextComponent("Vote for a map"));
     }
 
     @Override

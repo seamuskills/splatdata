@@ -453,7 +453,7 @@ public class Match {
         }
 
         boolean validStage;
-        if (votes.size() / players.size() >= Config.Data.varietyRequirement.get() / 100){
+        if (votes.size() / players.size() >= Config.Data.varietyRequirement.get() / 100 && !votes.isEmpty()){
             String vote = votes.get(level.random.nextInt(votes.size()));
             if (vote.equals("Random")) vote = validStages.get((String)validStages.keySet().toArray()[level.random.nextInt(validStages.size())]).id;
             validStage = setStage(vote);

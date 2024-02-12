@@ -17,7 +17,7 @@ import java.util.ArrayList;
 
 public class ManageMenuKick extends MultiPageMenu{
     public ManageMenuKick(ServerPlayer player, int page) {
-        super(player,page);
+        super(player,page, new TextComponent("Kick player"));
     }
 
     @Override

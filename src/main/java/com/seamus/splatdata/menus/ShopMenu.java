@@ -17,7 +17,7 @@ import java.util.ArrayList;
 
 public class ShopMenu  extends MultiPageMenu{
     public ShopMenu(ServerPlayer p, int page){
-        super(p, page);
+        super(p, page, new TextComponent("Shop"));
     }
 
     @Override
