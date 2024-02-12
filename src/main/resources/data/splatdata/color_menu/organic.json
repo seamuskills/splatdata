@@ -1,0 +1,23 @@
+{
+  "icon" : {
+    "item": "splatcraft:organic_filter"
+  },
+  "colors": [
+    "#aa0000",
+    "#ff5555",
+    "#ffaa00",
+    "#ffff55",
+    "#00aa00",
+    "#55ff55",
+    "#55ffff",
+    "#00aaaa",
+    "#0000aa",
+    "#5555ff",
+    "#ff55ff",
+    "#aa00aa",
+    "#ffffff",
+    "#aaaaaa",
+    "#555555",
+    "#222222"
+  ]
+}
