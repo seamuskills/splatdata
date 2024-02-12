@@ -2,6 +2,7 @@ package com.seamus.splatdata.menus;
 
 import com.seamus.splatdata.CapInfo;
 import com.seamus.splatdata.Capabilities;
+import com.seamus.splatdata.SplatcraftData;
 import com.seamus.splatdata.datapack.ShopDataListener;
 import com.seamus.splatdata.datapack.ShopItem;
 import com.seamus.splatdata.menus.buttons.FunctionButton;
@@ -26,8 +27,8 @@ public class ShopMenu  extends MultiPageMenu{
         buttonsList.add(new FunctionButton(new ItemStack(SplatcraftItems.powerEgg.get()), new TextComponent("You have $" + Capabilities.get(player).cash), (p) -> {}));
         for (ShopItem item : ShopDataListener.shopItems){
             if (!Capabilities.get(player).unlockedWeapons.contains(item.id)) {
-                MutableComponent name = item.item.getHoverName().copy().append(new TextComponent(", $" + item.cost + " (click to purchase)"));
-                buttonsList.add(new FunctionButton(item.item.copy(), name, (p) -> {
+                MutableComponent name = item.item.getHoverName().copy().append(new TextComponent(", $" + item.cost));
+                buttonsList.add(new FunctionButton(SplatcraftData.applyLore(item.item.copy(), new TextComponent("Click to attempt purchase")), name, (p) -> {
                     if (ShopMenu.purchase(p, item)){
                         p.sendMessage(new TextComponent("Item purchased!").withStyle(ChatFormatting.GREEN), p.getUUID());
                     }else{
@@ -36,8 +37,8 @@ public class ShopMenu  extends MultiPageMenu{
                     p.closeContainer();
                 }));
             }else{
-                MutableComponent name = item.item.getHoverName().copy().append(new TextComponent(", owned (click to grab for free)"));
-                buttonsList.add(new FunctionButton(item.item.copy(), name, (p) -> {
+                MutableComponent name = item.item.getHoverName().copy();
+                buttonsList.add(new FunctionButton(SplatcraftData.applyLore(item.item.copy(), new TextComponent("You own this item, click to grab it at no cost")), name, (p) -> {
                     p.getInventory().setItem(0, item.item.copy());
                     p.closeContainer();
                 }));

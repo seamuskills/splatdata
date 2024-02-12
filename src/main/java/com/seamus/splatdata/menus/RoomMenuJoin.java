@@ -1,9 +1,6 @@
 package com.seamus.splatdata.menus;
 
-import com.seamus.splatdata.CapInfo;
-import com.seamus.splatdata.Capabilities;
-import com.seamus.splatdata.Match;
-import com.seamus.splatdata.WorldCaps;
+import com.seamus.splatdata.*;
 import com.seamus.splatdata.commands.RoomCommand;
 import com.seamus.splatdata.menus.buttons.FunctionButton;
 import com.seamus.splatdata.menus.buttons.MenuButton;
@@ -30,7 +27,13 @@ public class RoomMenuJoin extends MultiPageMenu{
             players.add((ServerPlayer) sourcePlayer.level.getPlayerByUUID(m.host));
         }
         for (Player p : players){
-            ItemStack head = new ItemStack(Blocks.PLAYER_HEAD);
+            Match targetMatch = WorldCaps.get(player.level).activeMatches.get(Capabilities.get(p).match);
+            TextComponent[] lore = {
+                    (TextComponent) new TextComponent(targetMatch.password.length == 0 ? "No password" : "Password Protected").withStyle(targetMatch.password.length == 0 ? ChatFormatting.GREEN : ChatFormatting.GOLD),
+                    (TextComponent) new TextComponent("Game type: ").append(targetMatch.matchGameType.displayName),
+                    (TextComponent) new TextComponent(targetMatch.inProgress ? "In progress" : "Click to join").withStyle(targetMatch.inProgress ? ChatFormatting.RED : ChatFormatting.GREEN),
+            };
+            ItemStack head = SplatcraftData.applyLoreArray(new ItemStack(Blocks.PLAYER_HEAD), lore);
             head.getOrCreateTag().putString("SkullOwner", p.getGameProfile().getName());
             buttonList.add(new FunctionButton(head, p.getName(), (player) -> {
                 RoomCommand.joinRoom(player, p);

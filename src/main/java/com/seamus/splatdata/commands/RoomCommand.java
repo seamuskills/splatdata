@@ -6,6 +6,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.seamus.splatdata.*;
 import com.seamus.splatdata.menus.ManageMenu;
 import com.seamus.splatdata.menus.PasswordMenu;
+import com.seamus.splatdata.menus.RoomMenuJoin;
 import com.seamus.splatdata.menus.RoomMenuMain;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
@@ -25,6 +26,11 @@ public class RoomCommand {
     public RoomCommand(CommandDispatcher<CommandSourceStack> dispatcher){
         dispatcher.register(Commands.literal("room").then(Commands.literal("create").executes(this::createRoom)));
         dispatcher.register(Commands.literal("room").then(Commands.literal("join").then(Commands.argument("player", EntityArgument.player()).executes(this::joinRoom))));
+        dispatcher.register(Commands.literal("room").then(Commands.literal("join").executes((Command) -> {
+            ServerPlayer p = Command.getSource().getPlayerOrException();
+            p.openMenu(new RoomMenuJoin(p, 0));
+            return 0;
+        })));
         dispatcher.register(Commands.literal("room").then(Commands.literal("ready").executes(this::ready)));
         dispatcher.register(Commands.literal("room").then(Commands.literal("unready").executes(this::unready)));
         dispatcher.register(Commands.literal("room").then(Commands.literal("spec").executes(this::spec)));

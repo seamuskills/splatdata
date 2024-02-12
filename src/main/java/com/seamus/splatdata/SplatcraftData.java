@@ -2,6 +2,11 @@ package com.seamus.splatdata;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.common.MinecraftForge;
@@ -16,6 +21,8 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.network.NetworkConstants;
 import org.slf4j.Logger;
+
+import java.util.Arrays;
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod("splatdata")
@@ -61,5 +68,18 @@ public class SplatcraftData {
         }else {
             return shape.bounds().getYsize();
         }
+    }
+
+    public static ItemStack applyLore(ItemStack item, Component loreComponent){
+        ListTag lore = new ListTag();
+        lore.add(StringTag.valueOf(Component.Serializer.toJson(loreComponent)));
+        item.getOrCreateTagElement("display").put("Lore", lore);
+        return item;
+    }
+    public static ItemStack applyLoreArray(ItemStack item, Component[] loreArray){
+        ListTag lore = new ListTag();
+        Arrays.stream(loreArray).forEach((c) -> {lore.add(StringTag.valueOf(Component.Serializer.toJson(c)));});
+        item.getOrCreateTagElement("display").put("Lore", lore);
+        return item;
     }
 }

@@ -2,6 +2,7 @@ package com.seamus.splatdata.menus;
 
 import com.seamus.splatdata.Capabilities;
 import com.seamus.splatdata.CapInfo;
+import com.seamus.splatdata.SplatcraftData;
 import com.seamus.splatdata.commands.RoomCommand;
 import com.seamus.splatdata.menus.buttons.FunctionButton;
 import net.minecraft.network.chat.TextComponent;
@@ -36,8 +37,8 @@ public class RoomMenuMain extends MenuContainer{
             }
             addButton(0, 3, new FunctionButton(new ItemStack(Items.RABBIT_FOOT), new TextComponent("leave"), RoomCommand::leave, this));
         }else{
-            addButton(0, 0, new FunctionButton(new ItemStack(Blocks.CRAFTING_TABLE), new TextComponent("create room"), RoomCommand::createRoom, this));
-            addButton(0, 4, new FunctionButton(new ItemStack(Blocks.PLAYER_HEAD), new TextComponent("join room"), (player) -> player.openMenu(new RoomMenuJoin(player, 0))));
+            addButton(0, 0, new FunctionButton(SplatcraftData.applyLore(new ItemStack(Blocks.CRAFTING_TABLE), new TextComponent("Create a room for others to join")), new TextComponent("create room"), RoomCommand::createRoom, this));
+            addButton(0, 4, new FunctionButton(SplatcraftData.applyLore(new ItemStack(Blocks.PLAYER_HEAD), new TextComponent("Join existing room hosted by another player")), new TextComponent("join room"), (player) -> player.openMenu(new RoomMenuJoin(player, 0))));
         }
     }
 }

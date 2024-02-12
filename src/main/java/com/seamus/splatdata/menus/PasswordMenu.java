@@ -14,7 +14,7 @@ public class PasswordMenu extends MenuContainer{
     ExecutableFunction func;
     ArrayList<Integer> password;
     public PasswordMenu(ServerPlayer player, ExecutableFunction function) {
-        super(MenuSize.SIZE_6X9, new TextComponent("password"), player);
+        super(MenuSize.SIZE_6X9, new TextComponent("input password"), player);
         func = function;
         password = new ArrayList<>();
         init2(player);

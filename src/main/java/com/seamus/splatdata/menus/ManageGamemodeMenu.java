@@ -2,6 +2,7 @@ package com.seamus.splatdata.menus;
 
 import com.seamus.splatdata.Capabilities;
 import com.seamus.splatdata.Match;
+import com.seamus.splatdata.SplatcraftData;
 import com.seamus.splatdata.WorldCaps;
 import com.seamus.splatdata.datapack.GameTypeListener;
 import com.seamus.splatdata.datapack.MatchGameType;
@@ -27,10 +28,7 @@ public class ManageGamemodeMenu extends MultiPageMenu{
     public void init(ServerPlayer player){
         ArrayList<MenuButton> buttons = new ArrayList<>();
         for (MatchGameType g : GameTypeListener.gameTypes.values()){
-            ItemStack icon = g.icon;
-            ListTag lore = new ListTag();
-            lore.add(StringTag.valueOf(Component.Serializer.toJson(g.description)));
-            icon.getOrCreateTagElement("display").put("Lore", lore);
+            ItemStack icon = SplatcraftData.applyLore(g.icon.copy(), g.description);
             buttons.add(new FunctionButton(icon, g.displayName, (p) -> {
                 Match match = WorldCaps.get(p.level).activeMatches.get(Capabilities.get(p).match);
                 if (match.inProgress){

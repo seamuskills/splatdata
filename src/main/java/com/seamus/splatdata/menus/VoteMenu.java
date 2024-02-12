@@ -2,6 +2,7 @@ package com.seamus.splatdata.menus;
 
 import com.seamus.splatdata.CapInfo;
 import com.seamus.splatdata.Capabilities;
+import com.seamus.splatdata.SplatcraftData;
 import com.seamus.splatdata.datapack.StageData;
 import com.seamus.splatdata.datapack.StageDataListener;
 import com.seamus.splatdata.menus.buttons.FunctionButton;
@@ -22,12 +23,12 @@ public class VoteMenu extends MultiPageMenu{
     @Override
     public void init(ServerPlayer originPlayer) {
         ArrayList<MenuButton> buttonList = new ArrayList<>();
-        buttonList.add(new FunctionButton(new ItemStack(Items.CHORUS_FRUIT), new TextComponent("Random Stage"), (player) -> {
+        buttonList.add(new FunctionButton(SplatcraftData.applyLore(new ItemStack(Items.CHORUS_FRUIT), new TextComponent("Set vote for randomly selected stage")), new TextComponent("Random Stage"), (player) -> {
             Capabilities.get(player).vote = "Random"; player.closeContainer();
             player.sendMessage(new TextComponent("map vote set to choose randomly"), player.getUUID());
         }));
         for (StageData stage : StageDataListener.stages.values()){
-            buttonList.add(new FunctionButton(stage.icon, stage.displayName, (player) -> {
+            buttonList.add(new FunctionButton(SplatcraftData.applyLore(stage.icon.copy(), new TextComponent("Click to set vote")), stage.displayName, (player) -> {
                 CapInfo caps = Capabilities.get(player);
                 caps.vote = stage.id;
                 player.sendMessage(new TextComponent("map vote set to ").append(stage.displayName), player.getUUID());

@@ -2,6 +2,7 @@ package com.seamus.splatdata.menus;
 
 import com.seamus.splatdata.CapInfo;
 import com.seamus.splatdata.Capabilities;
+import com.seamus.splatdata.SplatcraftData;
 import com.seamus.splatdata.WorldCaps;
 import com.seamus.splatdata.commands.RoomCommand;
 import com.seamus.splatdata.menus.buttons.FunctionButton;
@@ -31,7 +32,7 @@ public class ManageMenuKick extends MultiPageMenu{
                 return false;
             }
         })){
-            ItemStack head = new ItemStack(Blocks.PLAYER_HEAD);
+            ItemStack head = SplatcraftData.applyLore(new ItemStack(Blocks.PLAYER_HEAD), new TextComponent("Click to kick"));
             head.getOrCreateTag().putString("SkullOwner", p.getGameProfile().getName());
             buttonList.add(new FunctionButton(head, p.getName(), (player) -> {
                 WorldCaps.get(sourcePlayer.level).activeMatches.get(Capabilities.get(sourcePlayer).match).excommunicate(p);
