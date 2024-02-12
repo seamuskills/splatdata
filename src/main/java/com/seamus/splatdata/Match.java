@@ -62,8 +62,10 @@ public class Match {
     public String splatWinner = "";
     public UUID host;
     public int[] password = {};
+    public boolean noMoney = false;
     public Match(ServerPlayer p, ServerLevel l, UUID matchid){
         matchGameType = GameTypeListener.gameTypes.get("splatdata:turfwar");
+        if (matchGameType.matchTime < 100){noMoney = true;}
         id = matchid;
         players = new ArrayList<>();
         stalk(p);
@@ -258,20 +260,22 @@ public class Match {
                 playerCaps.lobbyStatus = CapInfo.lobbyStates.notReady;
 
                 SpawnCommand.tpToSpawn(player, true, true);
-                playerCaps.cash += Config.Data.cashPayout.get();
-                switch (matchGameType.wCondition) {
-                    case turf:
-                        if (ColorUtils.getPlayerColor(player) == results.getCommandResult()) {
-                            playerCaps.cash += Config.Data.winBonus.get();
-                        }
-                        break;
-                    case splats:
-                        if (teams.contains(splatWinner)){
-                            if (ColorUtils.getPlayerColor(player) == stage.getTeamColor(splatWinner)){
+                if (!noMoney) {
+                    playerCaps.cash += Config.Data.cashPayout.get();
+                    switch (matchGameType.wCondition) {
+                        case turf:
+                            if (ColorUtils.getPlayerColor(player) == results.getCommandResult()) {
                                 playerCaps.cash += Config.Data.winBonus.get();
                             }
-                        }
-                        break;
+                            break;
+                        case splats:
+                            if (teams.contains(splatWinner)) {
+                                if (ColorUtils.getPlayerColor(player) == stage.getTeamColor(splatWinner)) {
+                                    playerCaps.cash += Config.Data.winBonus.get();
+                                }
+                            }
+                            break;
+                    }
                 }
                 ColorUtils.setPlayerColor(player, playerCaps.preferredColor);
             }

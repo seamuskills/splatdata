@@ -46,6 +46,7 @@ public class ManageMenu extends MenuContainer{
                     if (match.currentState == Match.matchStates.gameplay) {
                         match.broadcast(new TextComponent("The host has ended the match!"));
                         match.timeLeft = 1;
+                        match.noMoney = true;
                     }else{
                         p.sendMessage(new TextComponent("The match cannot be stopped right now").withStyle(ChatFormatting.RED), player.getUUID());
                     }
