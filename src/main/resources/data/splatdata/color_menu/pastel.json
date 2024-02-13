@@ -1,0 +1,16 @@
+{
+  "displayName": {
+    "text": "Pastel Filter"
+  },
+  "icon" : {
+    "item": "splatcraft:pastel_filter"
+  },
+  "colors": [
+    "splatcraft:cyan",
+    "splatcraft:mint",
+    "splatcraft:royal_blue",
+    "splatcraft:peach",
+    "splatcraft:cherry",
+    "splatcraft:light_green"
+  ]
+}

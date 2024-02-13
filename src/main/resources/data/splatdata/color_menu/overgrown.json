@@ -1,0 +1,16 @@
+{
+  "displayName": {
+    "text": "Overgrown Filter"
+  },
+  "icon" : {
+    "item": "splatcraft:overgrown_filter"
+  },
+  "colors": [
+    "splatcraft:moth_green",
+    "splatcraft:light_green",
+    "splatcraft:lumigreen",
+    "splatcraft:winter_green",
+    "splatcraft:pumpkin",
+    "splatcraft:redwood"
+  ]
+}

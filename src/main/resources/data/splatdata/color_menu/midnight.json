@@ -1,0 +1,16 @@
+{
+  "displayName": {
+    "text": "Midnight Filter"
+  },
+  "icon" : {
+    "item": "splatcraft:midnight_filter"
+  },
+  "colors": [
+    "splatcraft:moth_green",
+    "splatcraft:mustard",
+    "splatcraft:soda",
+    "splatcraft:purple",
+    "splatcraft:dark_blue",
+    "splatcraft:deep_blue"
+  ]
+}

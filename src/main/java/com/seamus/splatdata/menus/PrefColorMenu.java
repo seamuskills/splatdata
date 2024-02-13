@@ -23,6 +23,7 @@ public class PrefColorMenu extends MenuContainer{
 
     @Override
     public void init(ServerPlayer player) {
+        buttons.clear();
         if (filter == null && !ColorListener.filters.isEmpty())
             filter = ColorListener.filters.keySet().toArray(new ItemStack[0])[0];
         //todo, scrollmenu on top for all tags under color_menu
@@ -45,8 +46,9 @@ public class PrefColorMenu extends MenuContainer{
             if (i - filterIndex > 7 || i - filterIndex < 0) {
                 continue;
             }
-            addButton(0, 1 + (filterIndex - i), new FunctionButton(key, key.getHoverName(), (p) -> {
+            addButton(0, 1 + (i - filterIndex), new FunctionButton(key, key.getHoverName(), (p) -> {
                 filter = key;
+                init(p);
             }));
             i++;
         }
@@ -57,7 +59,7 @@ public class PrefColorMenu extends MenuContainer{
                 init(p);
             }));
         }
-        if (ColorListener.filters.get(filter).length > 5){
+        if (ColorListener.filters.get(filter).length / 7 > 5){
             addButton(5, 8, new FunctionButton(new ItemStack(Items.ARROW), new TextComponent("Forward"), (p) -> {
                 colorIndex--;
                 init(p);
@@ -66,21 +68,20 @@ public class PrefColorMenu extends MenuContainer{
 
         i = 0;
         for (int color : ColorListener.filters.get(filter)){
-            int row = 1 + ((i + colorIndex) / 5);
+            int row = 1 + ((i - colorIndex) / 7);
             int col = 1 + (i % 7);
-            if (row - colorIndex < 0 || row - colorIndex > 8){
+            if (row - colorIndex < 0 || row - colorIndex > 5){
                 continue;
             }
-            ItemStack wool = new ItemStack(SplatcraftItems.inkedWool.get());
-            ColorUtils.setInkColor(wool, color);
-            addButton(row, col, new FunctionButton(wool, ColorUtils.getColorName(color), (p) -> {
+            ItemStack colorIcon = new ItemStack(SplatcraftItems.inkedGlassPane.get());
+            ColorUtils.setInkColor(colorIcon, color);
+            addButton(row, col, new FunctionButton(colorIcon, ColorUtils.getColorName(color), (p) -> {
                 Capabilities.get(p).preferredColor = color;
-                ColorUtils.setPlayerColor(p, color);
+                if (!Capabilities.get(p).inMatch()) ColorUtils.setPlayerColor(p, color);
                 p.sendMessage(new TextComponent("Color set to ").append(ColorUtils.getColorName(color)), p.getUUID());
                 p.closeContainer();
             }));
             i++;
         }
-        System.out.println(ColorListener.filters.keySet().size());
     }
 }

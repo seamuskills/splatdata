@@ -26,7 +26,7 @@ public class RoomMenuMain extends MenuContainer{
         ItemStack inkwell = new ItemStack(SplatcraftItems.inkwell.get());
         ColorUtils.setColorLocked(inkwell, true);
         ColorUtils.setInkColor(inkwell, ColorUtils.getEntityColor(p));
-        SplatcraftData.applyLore(inkwell, new TextComponent("Set the color you revert to when leaving a match"));
+        SplatcraftData.applyLore(inkwell, new TextComponent("Set the color you revert to when leaving a match, use /preferredcolor <color> to use exact hex values"));
         if (caps.inMatch()){
             addButton(0, 0, new GotoMenuButton(inkwell, new TextComponent("Preferred color"), PrefColorMenu::new));
             switch (caps.lobbyStatus) {

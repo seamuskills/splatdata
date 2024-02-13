@@ -1,0 +1,14 @@
+{
+  "displayName": {
+    "text": "Krakenburg Filter"
+  },
+  "icon" : {
+    "item": "splatcraft:sardinium_block"
+  },
+  "colors": [
+    "splatcraft:yellow",
+    "splatcraft:cobalt",
+    "#f6b092",
+    "splatcraft:soda"
+  ]
+}
