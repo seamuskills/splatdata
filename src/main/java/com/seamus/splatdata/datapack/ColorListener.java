@@ -3,6 +3,7 @@ package com.seamus.splatdata.datapack;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
@@ -50,7 +51,9 @@ public class ColorListener extends SimpleJsonResourceReloadListener {
                 colors.add(colorInt);
             }
 
-            filters.put(ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(json.getValue().getAsJsonObject(), "icon")), Arrays.stream(colors.toArray(new Integer[0])).mapToInt(i -> i).toArray());
+            ItemStack item = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(json.getValue().getAsJsonObject(), "icon"));
+            item.setHoverName(Component.Serializer.fromJson(json.getValue().getAsJsonObject().getAsJsonObject("displayName")));
+            filters.put(item, Arrays.stream(colors.toArray(new Integer[0])).mapToInt(i -> i).toArray());
         }
     }
 }

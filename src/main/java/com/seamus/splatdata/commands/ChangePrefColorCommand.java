@@ -3,6 +3,7 @@ package com.seamus.splatdata.commands;
 import com.mojang.brigadier.CommandDispatcher;
 import com.seamus.splatdata.CapInfo;
 import com.seamus.splatdata.Capabilities;
+import com.seamus.splatdata.menus.PrefColorMenu;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.TextComponent;
@@ -25,5 +26,9 @@ public class ChangePrefColorCommand {
             Command.getSource().sendSuccess(new TextComponent("Preferred color set!"), false);
             return 0;
         })));
+        dispatcher.register(Commands.literal("preferredcolor").executes((Command) -> {
+            Command.getSource().getPlayerOrException().openMenu(new PrefColorMenu(Command.getSource().getPlayerOrException()));
+            return 0;
+        }));
     }
 }

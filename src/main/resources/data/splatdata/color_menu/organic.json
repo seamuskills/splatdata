@@ -1,23 +1,26 @@
 {
+  "displayName": {
+    "text": "Organic Filter"
+  },
   "icon" : {
     "item": "splatcraft:organic_filter"
   },
   "colors": [
-    "#aa0000",
-    "#ff5555",
-    "#ffaa00",
-    "#ffff55",
-    "#00aa00",
-    "#55ff55",
-    "#55ffff",
-    "#00aaaa",
-    "#0000aa",
-    "#5555ff",
-    "#ff55ff",
-    "#aa00aa",
-    "#ffffff",
-    "#aaaaaa",
-    "#555555",
-    "#222222"
+    "splatcraft:dye_white",
+    "splatcraft:dye_orange",
+    "splatcraft:dye_magenta",
+    "splatcraft:dye_light_blue",
+    "splatcraft:dye_yellow",
+    "splatcraft:dye_lime",
+    "splatcraft:dye_pink",
+    "splatcraft:dye_gray",
+    "splatcraft:dye_light_gray",
+    "splatcraft:dye_cyan",
+    "splatcraft:dye_purple",
+    "splatcraft:dye_blue",
+    "splatcraft:dye_brown",
+    "splatcraft:dye_green",
+    "splatcraft:dye_red",
+    "splatcraft:dye_black"
   ]
 }
