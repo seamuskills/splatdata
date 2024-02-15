@@ -216,12 +216,24 @@ public class Events {
                    //event.player.teleportTo(respawnPos.getX(), respawnPos.getY(), respawnPos.getZ());
                     ((ServerPlayer) event.player).connection.teleport(respawnPos.getX() + 0.5, respawnPos.getY() + SplatcraftData.blockHeight(respawnPos, event.player.getLevel()), respawnPos.getZ() + 0.5, ((ServerPlayer) event.player).getRespawnAngle(), 0.0f);
                     event.player.displayClientMessage(new TextComponent("Respawned!").withStyle(ChatFormatting.GREEN), true);
+                    if (capInfo.inMatch()){
+                        if (worldCaps.activeMatches.get(capInfo.match).currentState == Match.matchStates.gameplay)
+                            worldCaps.activeMatches.get(capInfo.match).addMods((ServerPlayer) event.player);
+                    }
                     capInfo.waveRespawning = false;
                 }else {
                     event.player.displayClientMessage(new TextComponent("Respawn point null!").withStyle(ChatFormatting.RED), true);
                 }
                 ((ServerPlayer)event.player).setGameMode(capInfo.respawnGamemode);
             }
+        }
+    }
+
+    @SubscribeEvent
+    public static void dc(PlayerEvent.PlayerLoggedOutEvent event){
+        CapInfo caps = Capabilities.get(event.getPlayer());
+        if (caps.inMatch()){
+            WorldCaps.get(event.getPlayer().level).activeMatches.get(caps.match).excommunicate((ServerPlayer) event.getPlayer());
         }
     }
 

@@ -19,6 +19,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.BossEvent;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.GameType;
@@ -39,6 +41,7 @@ import net.splatcraft.forge.util.ColorUtils;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class Match {
     public int timeLeft = -1;
@@ -63,6 +66,7 @@ public class Match {
     public UUID host;
     public int[] password = {};
     public boolean noMoney = false;
+    public HashMap<Attribute, AttributeModifier> modifiers;
     public Match(ServerPlayer p, ServerLevel l, UUID matchid){
         matchGameType = GameTypeListener.gameTypes.get("splatdata:turfwar");
         if (matchGameType.matchTime < 100){noMoney = true;}
@@ -167,6 +171,24 @@ public class Match {
         }
     }
 
+    public void removeMods(ServerPlayer p){
+        for (Map.Entry<Attribute, AttributeModifier> entry : modifiers.entrySet()) {
+            p.getAttribute(entry.getKey()).removeModifier(entry.getValue());
+        }
+    }
+
+    public void addMods(ServerPlayer player){
+        for (Attribute attribute : matchGameType.attributes.keySet()){
+            AttributeModifier mod = new AttributeModifier(attribute.getRegistryName().getPath(), matchGameType.attributes.get(attribute), AttributeModifier.Operation.MULTIPLY_BASE);
+            modifiers.put(attribute, mod);
+            try {
+                player.getAttribute(attribute).addTransientModifier(mod);
+            }catch(NullPointerException e){
+                Logger.getLogger("splatdata").warning("Player does not have attribute " + attribute.getRegistryName());
+            }
+        }
+    }
+
     private void gameplay(){
         //wave respawn code
         if (matchGameType.rMode == MatchGameType.respawnMode.wave || matchGameType.rMode == MatchGameType.respawnMode.waveOrTimed) {
@@ -206,6 +228,7 @@ public class Match {
     private void endingCutscene(){
         if (cutsceneTime == -1) {
             for (ServerPlayer player : getPlayerList()) {
+                removeMods(player);
                 Capabilities.get(player).respawnTimeTicks = -1;
                 player.setGameMode(GameType.SPECTATOR);
                 bossbar.setVisible(false);
@@ -351,6 +374,7 @@ public class Match {
 
     public void excommunicate(ServerPlayer p, boolean tp){
         players.remove(p.getUUID());
+        removeMods(p);
         CapInfo caps = Capabilities.get(p);
         caps.lobbyStatus = CapInfo.lobbyStates.out;
         caps.match = null;
@@ -485,6 +509,8 @@ public class Match {
 //            }
 //        }
 
+        modifiers = new HashMap<>(); //reset it
+
         int teamAssign = 0;
         for (ServerPlayer player : getPlayerList(true)) {
             CapInfo caps = Capabilities.get(player);
@@ -503,6 +529,9 @@ public class Match {
                     ColorUtils.setPlayerColor(player, 0xffffff);
                     caps.team = "spec";
                     break;
+            }
+            if (!matchGameType.attributes.isEmpty()){
+                addMods(player);
             }
         }
         List<ServerPlayer> noSpectators = getPlayerList().stream().filter((p) -> {return Capabilities.get(p).lobbyStatus != CapInfo.lobbyStates.spectator;}).toList();

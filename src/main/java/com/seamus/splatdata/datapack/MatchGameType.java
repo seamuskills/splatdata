@@ -1,7 +1,11 @@
 package com.seamus.splatdata.datapack;
 
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.item.ItemStack;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class MatchGameType {
     public Component displayName;
@@ -27,7 +31,9 @@ public class MatchGameType {
 
     public ItemStack icon;
 
-    public MatchGameType(Component displayName, Component description, winCon wCondition, respawnMode rMode, float matchTime, float respawnTime, ItemStack icon){
+    public HashMap<Attribute, Double> attributes;
+
+    public MatchGameType(Component displayName, Component description, winCon wCondition, respawnMode rMode, float matchTime, float respawnTime, ItemStack icon, HashMap<Attribute, Double> attributes){
         this.respawnTime = respawnTime;
         this.matchTime = matchTime * 20;
         this.wCondition = wCondition;
@@ -35,42 +41,7 @@ public class MatchGameType {
         this.displayName = displayName;
         this.description = description;
         this.icon = icon;
+        this.attributes = attributes;
     }
 
-//    public void update(Match match){
-//        if (rMode == respawnMode.wave || rMode == respawnMode.waveOrTimed){ //if we have to worry about waves.
-//            List<String> teams = match.teams;
-//            for (String team : teams){
-//                if (team.equals("spec")) continue; //disallowed team name
-//                int color = match.stage.getTeamColor(team);
-//                List<ServerPlayer> players = match.getPlayerList();
-//                players.removeIf((p) -> {return ColorUtils.getEntityColor(p) == color;}); //get only players on this team.
-//                if (players.isEmpty()) continue; //nobody on the team
-//                //remove players who are dead
-//                //remove all players who have no caps
-//                players.removeIf((p) -> {
-//                    if (Capabilities.hasCapability(p)) {
-//                        return Capabilities.get(p).respawnTimeTicks > 0 || p.gameMode.getGameModeForPlayer().equals(net.minecraft.world.level.GameType.SPECTATOR);
-//                    }else{
-//                        return false;
-//                    }
-//                });
-//
-//                if (players.isEmpty()){ //if this is empty, all the team members are dead, so respawn them.
-//                    //respawn all players
-//                }
-//            }
-//        } else if (rMode == respawnMode.waveOrTimed || rMode == respawnMode.normal) { //todo, respawn modes: normal, disabled, timedWave timed behavior.
-//            List<ServerPlayer> players = match.getPlayerList();
-//            players.removeIf((p) -> {return !Capabilities.hasCapability(p);});
-//            for (Player p : players){
-//                CapInfo caps = Capabilities.get(p);
-//                if (caps.respawnTimeTicks >= 0){
-//                    caps.respawnTimeTicks--;
-//                }else{
-//
-//                }
-//            }
-//        }
-//    }
 }

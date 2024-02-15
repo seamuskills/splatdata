@@ -1,6 +1,8 @@
 package com.seamus.splatdata.datapack;
 
+import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.seamus.splatdata.Config;
@@ -10,12 +12,19 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.level.storage.loot.Deserializers;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.splatcraft.forge.registries.SplatcraftAttributes;
+import org.apache.logging.log4j.LogManager;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -54,7 +63,46 @@ public class GameTypeListener extends SimpleJsonResourceReloadListener {
 
             Component displayName = Component.Serializer.fromJson(entry.getValue().getAsJsonObject().getAsJsonObject("displayName"));
             Component description = Component.Serializer.fromJson(entry.getValue().getAsJsonObject().getAsJsonObject("description"));
-            gameTypes.put(entry.getKey().toString(), new MatchGameType(displayName, description,winCon, respawnMode, gameTime, respawnTime, item));
+
+            HashMap<Attribute, Double> attributes = new HashMap<>();
+            if (entry.getValue().getAsJsonObject().has("attributes")){
+                JsonObject attributeObject = GsonHelper.getAsJsonObject(entry.getValue().getAsJsonObject(),"attributes");
+                for (String attributeString : attributeObject.keySet()){
+                    switch (attributeString){
+                        case "MOVEMENT_SPEED":
+                            attributes.put(Attributes.MOVEMENT_SPEED, GsonHelper.getAsDouble(attributeObject, attributeString));
+                            break;
+                        case "INK_SWIM_SPEED":
+                            attributes.put(SplatcraftAttributes.inkSwimSpeed.get(), GsonHelper.getAsDouble(attributeObject, attributeString));
+                            break;
+                        case "MAX_HEALTH":
+                            attributes.put(Attributes.MAX_HEALTH, GsonHelper.getAsDouble(attributeObject, attributeString));
+                            break;
+                        case "ARMOR":
+                            attributes.put(Attributes.ARMOR, GsonHelper.getAsDouble(attributeObject, attributeString));
+                            break;
+                        case "ARMOR_TOUGHNESS":
+                            attributes.put(Attributes.ARMOR_TOUGHNESS, GsonHelper.getAsDouble(attributeObject, attributeString));
+                            break;
+                        case "SUPER_JUMP_TRAVEL_TIME":
+                            attributes.put(SplatcraftAttributes.superJumpTravelTime.get(), GsonHelper.getAsDouble(attributeObject, attributeString));
+                            break;
+                        case "SUPER_JUMP_WINDUP_TIME":
+                            attributes.put(SplatcraftAttributes.superJumpWindupTime.get(), GsonHelper.getAsDouble(attributeObject, attributeString));
+                            break;
+                        case "SUPER_JUMP_HEIGHT":
+                            attributes.put(SplatcraftAttributes.superJumpHeight.get(), GsonHelper.getAsDouble(attributeObject, attributeString));
+                            break;
+                        case "JUMP_STRENGTH":
+                            attributes.put(Attributes.JUMP_STRENGTH, GsonHelper.getAsDouble(attributeObject, attributeString));
+                        default:
+                            LogManager.getLogger("splatdata").warn("Invalid attribute used in datapack! file: " + entry.getKey() + " attribute: " + attributeString);
+                            break;
+                    }
+                }
+            }
+
+            gameTypes.put(entry.getKey().toString(), new MatchGameType(displayName, description,winCon, respawnMode, gameTime, respawnTime, item, attributes));
         }
     }
 }
