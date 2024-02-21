@@ -25,7 +25,14 @@ import java.util.Arrays;
 public class RoomCommand {
     public RoomCommand(CommandDispatcher<CommandSourceStack> dispatcher){
         dispatcher.register(Commands.literal("room").then(Commands.literal("create").executes(this::createRoom)));
-        dispatcher.register(Commands.literal("room").then(Commands.literal("join").then(Commands.argument("player", EntityArgument.player()).executes(this::joinRoom))));
+        dispatcher.register(Commands.literal("room").then(Commands.literal("join").then(Commands.argument("player", EntityArgument.player()).executes((c) -> {
+            if (WorldCaps.get(c.getSource().getPlayerOrException().level).activeMatches.get(Capabilities.get(c.getArgument("player", Player.class)).match).inProgress){
+                c.getSource().getPlayerOrException().openMenu(new RoomMenuJoin.spectatePrompt(c.getSource().getPlayerOrException(), (ServerPlayer) c.getArgument("player", Player.class)));
+                return 0;
+            }else{
+                return joinRoom(c.getSource().getPlayerOrException(), c.getArgument("player", Player.class));
+            }
+        }))));
         dispatcher.register(Commands.literal("room").then(Commands.literal("join").executes((Command) -> {
             ServerPlayer p = Command.getSource().getPlayerOrException();
             p.openMenu(new RoomMenuJoin(p, 0));
@@ -97,7 +104,7 @@ public class RoomCommand {
         return joinRoom(command.getSource().getPlayerOrException(), EntityArgument.getPlayer(command,"player"));
     }
 
-    public static int joinRoom(ServerPlayer player, Player target){
+    public static int joinRoom(ServerPlayer player, Player target, boolean spectate){
         CapInfo playerCap = Capabilities.get(player);
         if (playerCap.inMatch()){
             player.sendMessage(new TextComponent("You cannot enter multiple rooms.").withStyle(ChatFormatting.RED), player.getUUID());
@@ -116,17 +123,17 @@ public class RoomCommand {
                 player.sendMessage(new TextComponent("No room found involving that user!").withStyle(ChatFormatting.RED), player.getUUID());
                 return 0;
             }
-            if (join.inProgress){
-                player.sendMessage(new TextComponent("Room game in progress!").withStyle(ChatFormatting.RED), player.getUUID());
-                return 0;
-            }
+//            if (join.inProgress){
+//                player.sendMessage(new TextComponent("Room game in progress!").withStyle(ChatFormatting.RED), player.getUUID());
+//                return 0;
+//            }
             final Match targetMatch = worldCaps.activeMatches.get(Capabilities.get(target).match);
             if (targetMatch.password.length > 0) {
                 Match finalJoin = join;
                 player.openMenu(new PasswordMenu(player, (source, password) -> {
                     int[] convertedPassword = password.stream().mapToInt(Integer::intValue).toArray();
                     if (Arrays.equals(convertedPassword, targetMatch.password)) {
-                        finalJoin.stalk(player);
+                        finalJoin.stalk(player, spectate);
                         playerCap.lobbyStatus = CapInfo.lobbyStates.notReady;
                         player.sendMessage(new TextComponent("Joined room!").withStyle(ChatFormatting.GREEN), player.getUUID());
                         finalJoin.broadcast(((TextComponent)player.getName()).append(new TextComponent("  joined.").withStyle(ChatFormatting.GREEN)));
@@ -135,7 +142,7 @@ public class RoomCommand {
                     }
                 }));
             }else{
-                join.stalk(player);
+                join.stalk(player, spectate);
                 playerCap.lobbyStatus = CapInfo.lobbyStates.notReady;
                 player.sendMessage(new TextComponent("Joined room!").withStyle(ChatFormatting.GREEN), player.getUUID());
                 join.broadcast(((TextComponent)player.getName()).append(new TextComponent("  joined.").withStyle(ChatFormatting.GREEN)));
@@ -144,6 +151,10 @@ public class RoomCommand {
             player.sendMessage(new TextComponent("null level!").withStyle(ChatFormatting.RED), player.getUUID());
         }
         return 0;
+    }
+
+    public static int joinRoom(ServerPlayer player, Player target) {
+        return joinRoom(player, target, false);
     }
 
     private int ready(CommandContext<CommandSourceStack> command) throws CommandSyntaxException {

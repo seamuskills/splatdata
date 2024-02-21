@@ -37,6 +37,7 @@ import net.splatcraft.forge.items.remotes.TurfScannerItem;
 import net.splatcraft.forge.registries.SplatcraftCommands;
 import net.splatcraft.forge.tileentities.SpawnPadTileEntity;
 import net.splatcraft.forge.util.ColorUtils;
+import org.apache.logging.log4j.LogManager;
 
 import java.awt.*;
 import java.util.*;
@@ -83,6 +84,15 @@ public class Match {
     }
     public Match(ServerPlayer p, ServerLevel l) {
         this( p, l, UUID.randomUUID());
+    }
+
+    public int teamCount(String team){
+        if (!teams.contains(team) || stage == null){
+            LogManager.getLogger("splatdata").warn("Invalid team or stage when attempting to get team count...");
+            return 0;
+        }else{
+            return getPlayerList().stream().filter((p) -> ColorUtils.getPlayerColor(p) == stage.getTeamColor(team)).toArray().length;
+        }
     }
 
     public void closeMatch(){
@@ -366,10 +376,45 @@ public class Match {
         }
     }
 
-    public void stalk(ServerPlayer p){
-        players.add(p.getUUID());
+    public void stalk(ServerPlayer p, boolean spectate){
         CapInfo caps = Capabilities.get(p);
         caps.match = id;
+
+        if (inProgress){
+            if (spectate){
+                p.setGameMode(GameType.SPECTATOR);
+                ColorUtils.setPlayerColor(p, 0xffffff);
+                List<ServerPlayer> players = getPlayerList();
+                p.setGameMode(GameType.SPECTATOR);
+                Vec3 position = players.get(p.level.random.nextInt(players.size())).position();
+                p.teleportTo(position.x, position.y, position.z); //stupid that it doesn't take vec3 directly...
+            }else{
+                String leastTeam = null;
+                int teamLeast = Integer.MAX_VALUE;
+                for (String team : teams){
+                    if (teamCount(team) <= teamLeast){
+                        leastTeam = team;
+                        teamLeast = teamCount(team);
+                    }
+                    System.out.println(team + teamCount(team));
+                }
+                ColorUtils.setPlayerColor(p, stage.getTeamColor(leastTeam));
+                System.out.println("leastTeam = " + leastTeam);
+                Collection<ServerPlayer> playerForWarp = new ArrayList<>();
+                playerForWarp.add(p);
+                warpPlayers(stageID, playerForWarp, true);
+                if (currentState != matchStates.gameplay){
+                    p.setGameMode(GameType.SPECTATOR);
+                }else {
+                    p.kill();
+                }
+            }
+        }
+        players.add(p.getUUID());
+    }
+
+    public void stalk(ServerPlayer p){
+        stalk(p, false);
     }
 
     public void excommunicate(ServerPlayer p, boolean tp){
