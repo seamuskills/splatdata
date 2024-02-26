@@ -15,8 +15,12 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.bossevents.CustomBossEvent;
 import net.minecraft.server.bossevents.CustomBossEvents;
+import net.minecraft.server.commands.TeamCommand;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.BossEvent;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -26,7 +30,10 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.scores.PlayerTeam;
+import net.minecraft.world.scores.Team;
 import net.minecraftforge.common.world.ForgeChunkManager;
+import net.minecraftforge.server.ServerLifecycleHooks;
 import net.splatcraft.forge.blocks.SpawnPadBlock;
 import net.splatcraft.forge.data.Stage;
 import net.splatcraft.forge.data.capabilities.saveinfo.SaveInfo;
@@ -68,6 +75,8 @@ public class Match {
     public int[] password = {};
     public boolean noMoney = false;
     public HashMap<Attribute, AttributeModifier> modifiers;
+
+    public List<PlayerTeam> scoreboardTeams;
     public Match(ServerPlayer p, ServerLevel l, UUID matchid){
         matchGameType = GameTypeListener.gameTypes.get("splatdata:turfwar");
         if (matchGameType.matchTime < 100){noMoney = true;}
@@ -99,6 +108,9 @@ public class Match {
         CustomBossEvents bossEvents = level.getServer().getCustomBossEvents();
         bossbar.setPlayers(new ArrayList<ServerPlayer>()); //if I don't do this, the bossbar will stay on the player's screen even if I destroy it...
         bossEvents.remove(bossbar);
+        for (PlayerTeam t : scoreboardTeams){
+            ServerLifecycleHooks.getCurrentServer().getScoreboard().removePlayerTeam(t);
+        }
         WorldCaps.get(level).activeMatches.remove(this.id);
 //        ChunkPos pos1 = level.getChunkAt(stage.cornerA).getPos();
 //        ChunkPos pos2 = level.getChunkAt(stage.cornerB).getPos();
@@ -126,6 +138,14 @@ public class Match {
             stage = saveInfo.getStages().get(stageID);
             teams = new ArrayList<>(stage.getTeamIds());
             teams.removeIf(StageDataListener.stages.get(stageID).ignoreTeams::contains);
+            scoreboardTeams = new ArrayList<>();
+            for (String t : teams){
+                PlayerTeam team = ServerLifecycleHooks.getCurrentServer().getScoreboard().addPlayerTeam("splatdata:" + t + "(match:" + id + ")");
+                team.setDeathMessageVisibility(Team.Visibility.NEVER);
+                team.setNameTagVisibility(Team.Visibility.HIDE_FOR_OTHER_TEAMS);
+                team.setSeeFriendlyInvisibles(false);
+                scoreboardTeams.add(team);
+            }
             return true;
         }else{
             return false;
@@ -241,7 +261,11 @@ public class Match {
                 removeMods(player);
                 Capabilities.get(player).respawnTimeTicks = -1;
                 player.setGameMode(GameType.SPECTATOR);
+                ServerLifecycleHooks.getCurrentServer().getScoreboard().removePlayerFromTeam(player.getStringUUID());
                 bossbar.setVisible(false);
+            }
+            for (PlayerTeam t : scoreboardTeams){
+                ServerLifecycleHooks.getCurrentServer().getScoreboard().removePlayerTeam(t);
             }
             switch(matchGameType.wCondition) {
                 case turf:
@@ -376,6 +400,12 @@ public class Match {
         }
     }
 
+    public void soundoff(SoundEvent sound){
+        for (ServerPlayer player : getPlayerList()){
+            player.playNotifySound(sound, SoundSource.VOICE, 1.0f, 1.0f);
+        }
+    }
+
     public void stalk(ServerPlayer p, boolean spectate){
         CapInfo caps = Capabilities.get(p);
         caps.match = id;
@@ -399,7 +429,8 @@ public class Match {
                     System.out.println(team + teamCount(team));
                 }
                 ColorUtils.setPlayerColor(p, stage.getTeamColor(leastTeam));
-                System.out.println("leastTeam = " + leastTeam);
+                PlayerTeam scoreTeam = ServerLifecycleHooks.getCurrentServer().getScoreboard().getPlayersTeam("splatdata:" + leastTeam + "(match:" + id + ")");
+                if (scoreTeam != null) ServerLifecycleHooks.getCurrentServer().getScoreboard().addPlayerToTeam(p.getStringUUID(), scoreTeam);
                 Collection<ServerPlayer> playerForWarp = new ArrayList<>();
                 playerForWarp.add(p);
                 warpPlayers(stageID, playerForWarp, true);
@@ -419,6 +450,7 @@ public class Match {
 
     public void excommunicate(ServerPlayer p, boolean tp){
         players.remove(p.getUUID());
+        ServerLifecycleHooks.getCurrentServer().getScoreboard().removePlayerFromTeam(p.getStringUUID());
         removeMods(p);
         CapInfo caps = Capabilities.get(p);
         caps.lobbyStatus = CapInfo.lobbyStates.out;
@@ -541,6 +573,7 @@ public class Match {
 
         if (!validStage){
             broadcast(new TextComponent("Invalid stage selected! Please contact admin!").withStyle(ChatFormatting.RED));
+            soundoff(SoundEvents.ENDERMAN_DEATH);
             return; //can't start with no stage
         }
 
@@ -567,6 +600,8 @@ public class Match {
                     throw new RuntimeException("Someone was not ready!");
                 case ready:
                     caps.team = teams.get(teamAssign);
+                    PlayerTeam scoreTeam = ServerLifecycleHooks.getCurrentServer().getScoreboard().getPlayersTeam("splatdata:" + teamAssign + "(match:" + id + ")");
+                    if (scoreTeam != null) ServerLifecycleHooks.getCurrentServer().getScoreboard().addPlayerToTeam(player.getStringUUID(), scoreTeam);
                     teamAssign = (teamAssign + 1) % teams.size();
                     ColorUtils.setPlayerColor(player, stage.getTeamColor(caps.team));
                     break;

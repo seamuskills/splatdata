@@ -18,6 +18,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.scores.PlayerTeam;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
@@ -99,6 +100,10 @@ public class Events {
     public static void serverStart(ServerStartedEvent event){
         Collection<CustomBossEvent> bossEvents = event.getServer().getCustomBossEvents().getEvents();
         bossEvents.removeIf(bossEvent -> bossEvent.getTextId().getNamespace().equals("splatdata"));
+        for (PlayerTeam t : ServerLifecycleHooks.getCurrentServer().getScoreboard().getPlayerTeams().toArray(new PlayerTeam[0])){
+            if (t.getName().contains("splatdata") || t.getName().contains("splatadata"))
+                ServerLifecycleHooks.getCurrentServer().getScoreboard().removePlayerTeam(t);
+        }
     }
 
     //figure out later, invisible players to replace spectator mode
