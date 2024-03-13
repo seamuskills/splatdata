@@ -243,6 +243,23 @@ public class Match {
                 }
             }
         }
+        if (matchGameType.rMode == MatchGameType.respawnMode.disabled && teams.size() > 1){
+            ArrayList<String> aliveTeams = new ArrayList<>(); //all teams that are alive
+            List<ServerPlayer> players = getPlayerList(); //query this once so the function only has to run once...
+            for (String t : teams){
+                List<ServerPlayer> teamPlayers = players.stream().filter((player) -> ColorUtils.getPlayerColor(player) == stage.getTeamColor(t)).toList(); //get all players on this team
+                if (teamPlayers.stream().filter((player) -> Capabilities.get(player).respawnTimeTicks <= 0).toArray().length > 0){ //see if there are any alive players
+                    aliveTeams.add(t);
+                }
+            }
+            if (aliveTeams.size() == 1){
+                wipeoutWin = aliveTeams.get(0);
+                timeLeft = 1;
+            }else if (aliveTeams.isEmpty()) {
+                wipeoutWin = "nobody wins"; //technically this breaks if there is a team called "nobody wins" but who the hell is gonna name a team that???
+                timeLeft = 1;
+            }
+        }
 
         bossbar.setMax((int)(Config.Data.matchTime.get() * 20));
         if (matchGameType != null) bossbar.setMax((int)matchGameType.matchTime);
@@ -275,7 +292,7 @@ public class Match {
             }
             switch(matchGameType.wCondition) {
                 case turf:
-                    results = TurfScannerItem.scanTurf(level, level, stage.cornerA, stage.cornerB, 1, getPlayerList());
+                    results = TurfScannerItem.scanTurf(level, level, stage.cornerA, stage.cornerB, 1, new ArrayList<>());
                     scores = results.getScores();
                     break;
                 case splats:
@@ -312,6 +329,9 @@ public class Match {
                     if (validWinner) color = Style.EMPTY.withColor(stage.getTeamColor(splatWinner));
                     scoreText = (TextComponent) new TextComponent(splatWinner).withStyle(color);
             }
+            if (!wipeoutWin.isEmpty()){
+                scoreText = new TextComponent("winner by wipe out: " + wipeoutWin);
+            }
             for (Player player : getPlayerList()){
                 player.displayClientMessage(scoreText, true);
             }
@@ -325,19 +345,25 @@ public class Match {
                 SpawnCommand.tpToSpawn(player, true, true);
                 if (!noMoney) {
                     playerCaps.cash += Config.Data.cashPayout.get();
-                    switch (matchGameType.wCondition) {
-                        case turf:
-                            if (ColorUtils.getPlayerColor(player) == results.getCommandResult()) {
-                                playerCaps.cash += Config.Data.winBonus.get();
-                            }
-                            break;
-                        case splats:
-                            if (teams.contains(splatWinner)) {
-                                if (ColorUtils.getPlayerColor(player) == stage.getTeamColor(splatWinner)) {
+                    if (wipeoutWin.isEmpty()) {
+                        switch (matchGameType.wCondition) {
+                            case turf:
+                                if (ColorUtils.getPlayerColor(player) == results.getCommandResult()) {
                                     playerCaps.cash += Config.Data.winBonus.get();
                                 }
-                            }
-                            break;
+                                break;
+                            case splats:
+                                if (teams.contains(splatWinner)) {
+                                    if (ColorUtils.getPlayerColor(player) == stage.getTeamColor(splatWinner)) {
+                                        playerCaps.cash += Config.Data.winBonus.get();
+                                    }
+                                }
+                                break;
+                        }
+                    }else if (teams.contains(wipeoutWin)){
+                        if (stage.getTeamColor(wipeoutWin) == ColorUtils.getPlayerColor(player)){
+                            playerCaps.cash += Config.Data.winBonus.get();
+                        }
                     }
                 }
                 ColorUtils.setPlayerColor(player, playerCaps.preferredColor);
