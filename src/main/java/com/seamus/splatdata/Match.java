@@ -77,6 +77,7 @@ public class Match {
     public HashMap<Attribute, AttributeModifier> modifiers;
 
     public List<PlayerTeam> scoreboardTeams;
+    public String wipeoutWin = "";
     public Match(ServerPlayer p, ServerLevel l, UUID matchid){
         matchGameType = GameTypeListener.gameTypes.get("splatdata:turfwar");
         if (matchGameType.matchTime < 100){noMoney = true;}
@@ -229,9 +230,10 @@ public class Match {
             for (String t : teams) {
                 List<ServerPlayer> p = getPlayerList();
                 p.removeIf((player) -> ColorUtils.getPlayerColor(player) != stage.getTeamColor(t)); //remove all non-team members
-                p.removeIf((player) -> Capabilities.get(player).respawnTimeTicks >= 0); //remove all dead players
+                List<ServerPlayer> dead = p.stream().filter((player) -> Capabilities.get(player).respawnTimeTicks >= 0).toList(); //get all dead players
+                p.removeIf((player) -> Capabilities.get(player).respawnTimeTicks >= 0); //remove all dead players from the list doing the initial check
                 if (p.isEmpty()) {
-                    for (Player player : p) {
+                    for (Player player : dead) {
                         CapInfo info = Capabilities.get(player);
                         info.waveRespawning = true;
                         if (matchGameType.rMode == MatchGameType.respawnMode.waveOrTimed){
@@ -543,6 +545,7 @@ public class Match {
     }
 
     public void startGame(){
+        wipeoutWin = "";
         currentState = matchStates.intro;
 
         HashMap<String, StageData> validStages = StageDataListener.stages;
