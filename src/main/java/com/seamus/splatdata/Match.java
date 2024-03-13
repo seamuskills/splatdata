@@ -143,6 +143,7 @@ public class Match {
                 PlayerTeam team = ServerLifecycleHooks.getCurrentServer().getScoreboard().addPlayerTeam("splatdata:" + t + "(match:" + id + ")");
                 team.setDeathMessageVisibility(Team.Visibility.NEVER);
                 team.setNameTagVisibility(Team.Visibility.HIDE_FOR_OTHER_TEAMS);
+                team.setCollisionRule(Team.CollisionRule.PUSH_OTHER_TEAMS);
                 team.setSeeFriendlyInvisibles(false);
                 scoreboardTeams.add(team);
             }
@@ -202,6 +203,9 @@ public class Match {
     }
 
     public void removeMods(ServerPlayer p){
+        if (modifiers.isEmpty()){
+            return;
+        }
         for (Map.Entry<Attribute, AttributeModifier> entry : modifiers.entrySet()) {
             p.getAttribute(entry.getKey()).removeModifier(entry.getValue());
         }
