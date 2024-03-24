@@ -164,6 +164,10 @@ public class RoomCommand {
 
     public static int ready(Player player){
         CapInfo playerCap = Capabilities.get(player);
+        if (WorldCaps.get(player.level).fest && playerCap.festTeam.isEmpty()){
+            player.sendMessage(new TextComponent("You are not part of a splatfest team and can thusly only spectate!").withStyle(ChatFormatting.RED), player.getUUID());
+            return -1;
+        }
         if (playerCap.lobbyStatus == CapInfo.lobbyStates.ready){
             player.sendMessage(new TextComponent("You are already ready!").withStyle(ChatFormatting.RED), player.getUUID());
             return 0;

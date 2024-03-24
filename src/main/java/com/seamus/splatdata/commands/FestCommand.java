@@ -16,6 +16,9 @@ import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.dimension.LevelStem;
+import net.minecraftforge.server.ServerLifecycleHooks;
 import net.splatcraft.forge.commands.arguments.InkColorArgument;
 import net.splatcraft.forge.util.ColorUtils;
 import org.spongepowered.asm.mixin.injection.struct.InjectorGroupInfo;
@@ -49,7 +52,14 @@ public class FestCommand {
             return 0;
         })))));
         dispatcher.register(Commands.literal("splatfest").then(Commands.literal("teams").then(Commands.literal("list").executes((C) -> {
-            ServerPlayer player = C.getSource().getPlayerOrException();
+            ServerPlayer player;
+            try {
+                player = C.getSource().getPlayerOrException();
+            }catch (CommandSyntaxException e){ //accounts for a command block using this command.
+                Level level = ServerLifecycleHooks.getCurrentServer().getLevel(Level.OVERWORLD);
+                if (level == null) return 0;
+                return WorldCaps.get(level).festTeams.size();
+            }
             WorldInfo info = WorldCaps.get(player.level);
             if (info.festTeams.isEmpty()) {C.getSource().sendFailure(new TextComponent("No splatfest teams found."));}
             player.sendMessage(new TextComponent("Splatfest teams:"), player.getUUID());
