@@ -11,8 +11,11 @@ import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.Enchantments;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class VoteMenu extends MultiPageMenu{
     public int page = 0;
@@ -28,7 +31,11 @@ public class VoteMenu extends MultiPageMenu{
             player.sendMessage(new TextComponent("map vote set to choose randomly"), player.getUUID());
         }));
         for (StageData stage : StageDataListener.stages.values()){
-            buttonList.add(new FunctionButton(SplatcraftData.applyLore(stage.icon.copy(), new TextComponent("Click to set vote")), stage.displayName, (player) -> {
+            ItemStack icon = stage.icon.copy();
+            if (Objects.equals(Capabilities.get(originPlayer).vote, stage.id)){
+                icon.enchant(Enchantments.MENDING, 1);
+            }
+            buttonList.add(new FunctionButton(SplatcraftData.applyLore(icon, new TextComponent("Click to set vote")), stage.displayName, (player) -> {
                 CapInfo caps = Capabilities.get(player);
                 caps.vote = stage.id;
                 player.sendMessage(new TextComponent("map vote set to ").append(stage.displayName), player.getUUID());
