@@ -1,0 +1,35 @@
+{
+  "credits": [
+    [
+      {
+        "text": "Cibernet: ",
+        "color": "#005682"
+      },
+      {
+        "text": "Creator and programmer of splatcraft. Greatly assisted the creation of splatdata!",
+        "color": "white"
+      }
+    ],
+    [
+      {
+        "color": "gold",
+        "text": "Note: there are other developers working on splatcraft too. For more information check your mods tab."
+      }
+    ],
+    [
+      {
+        "text": "seamuskills: ",
+        "color": "#ffff00"
+      },
+      {
+        "text": "Creator of splatdata, responsible for match related commands & menus.",
+        "color": "white"
+      }
+    ],
+    [
+      {
+        "text": "Map credits listed with the maps (use /vote for a map list to vote from)"
+      }
+    ]
+  ]
+}

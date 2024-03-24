@@ -1,6 +1,7 @@
 package com.seamus.splatdata;
 
 import com.seamus.splatdata.commands.*;
+import com.seamus.splatdata.datapack.CreditsListener;
 import com.seamus.splatdata.datapack.MatchGameType;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -48,6 +49,7 @@ public class Events {
         new SetSpawnCommand(event.getDispatcher());
         new VoteCommand(event.getDispatcher());
         new FestCommand(event.getDispatcher());
+        new CreditsCommand(event.getDispatcher());
     }
 
     @SubscribeEvent
