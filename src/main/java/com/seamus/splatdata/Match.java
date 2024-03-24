@@ -74,7 +74,7 @@ public class Match {
     public UUID host;
     public int[] password = {};
     public boolean noMoney = false;
-    public HashMap<Attribute, AttributeModifier> modifiers;
+    public HashMap<Attribute, AttributeModifier> modifiers = new HashMap<>();
 
     public List<PlayerTeam> scoreboardTeams;
     public String wipeoutWin = "";
@@ -570,55 +570,58 @@ public class Match {
         return result != 0;
     }
 
+    public HashMap<String, StageData> getValidStages(){
+        HashMap<String, StageData> validStages = StageDataListener.stages;
+        for (Match match : WorldCaps.get(level).activeMatches.values()){
+            if (match.id == id || match.stageID.isEmpty()){continue;}
+            validStages.remove(match.stageID);
+        }
+        return validStages;
+    }
+
+    public ArrayList<String> getVotes(HashMap<String, StageData> stages){
+        ArrayList<String> votes = new ArrayList<>(getPlayerList().stream().map((p) -> {return Capabilities.get(p).vote;}).toList());
+        votes = new ArrayList<>(votes.stream().filter((s) -> stages.containsKey(s) || s.equals("Random")).toList());
+        return votes;
+    }
+
+    public String decideStage(ArrayList<String> votes, HashMap<String, StageData> validStages){
+        if (votes.size() / players.size() >= Config.Data.varietyRequirement.get() / 100 && !votes.isEmpty()){
+            String vote = votes.get(level.random.nextInt(votes.size()));
+            if (vote.equals("Random")) vote = validStages.get((String)validStages.keySet().toArray()[level.random.nextInt(validStages.size())]).id;
+            return vote;
+        }else{
+            broadcast(new TextComponent("Not enough players have a valid vote, choosing randomly from all maps").withStyle(ChatFormatting.YELLOW));
+            return (String) validStages.keySet().toArray()[level.random.nextInt(validStages.size())];
+        }
+    }
+
     public void startGame(){
         wipeoutWin = "";
         currentState = matchStates.intro;
 
-        HashMap<String, StageData> validStages = StageDataListener.stages;
-
-        for (Match match : WorldCaps.get(level).activeMatches.values()){
-            if (match.id == id || match.stageID.isEmpty()){ continue;}
-            validStages.remove(match.stageID);
-        }
-
-        ArrayList<String> votes = new ArrayList<>(getPlayerList().stream().map((p) -> {
-            return Capabilities.get(p).vote;
-        }).filter((s) -> {return validStages.containsKey(s) || s.equals("Random");}).toList());
+        HashMap<String, StageData> validStages = getValidStages();
 
         if (validStages.isEmpty()){
             broadcast(new TextComponent("All stages are currently in use! Please wait and try again later!").withStyle(ChatFormatting.RED));
             return;
         }
 
-        boolean validStage;
-        if (votes.size() / players.size() >= Config.Data.varietyRequirement.get() / 100 && !votes.isEmpty()){
-            String vote = votes.get(level.random.nextInt(votes.size()));
-            if (vote.equals("Random")) vote = validStages.get((String)validStages.keySet().toArray()[level.random.nextInt(validStages.size())]).id;
-            validStage = setStage(vote);
-        }else{
-            broadcast(new TextComponent("Not enough players have a valid vote, choosing randomly from all maps").withStyle(ChatFormatting.YELLOW));
-            validStage = setStage((String) validStages.keySet().toArray()[level.random.nextInt(validStages.size())]);
-        }
+        ArrayList<String> votes = getVotes(validStages);
+
+        boolean validStage = setStage(decideStage(votes, validStages));
 
         if (!(validStages.containsKey(stageID))){ //quick last check, this should never fire.
             validStage = false;
         }
 
         if (!validStage){
-            broadcast(new TextComponent("Invalid stage selected! Please contact admin!").withStyle(ChatFormatting.RED));
+            broadcast(new TextComponent("Invalid stage selected! Please contact admin! Stage: " + stageID).withStyle(ChatFormatting.RED));
             soundoff(SoundEvents.ENDERMAN_DEATH);
             return; //can't start with no stage
         }
 
-        if (Config.Data.randomColors.get()) setTeamColors();
-
-//        ChunkPos pos1 = level.getChunkAt(stage.cornerA).getPos();
-//        ChunkPos pos2 = level.getChunkAt(stage.cornerB).getPos();
-//        for (int x = 0; x < Math.abs(pos2.x - pos1.x); x++){
-//            for (int z = 0; z < Math.abs(pos2.z - pos1.z); z++){
-//                ForgeChunkManager.forceChunk(level, "splatdata", stage.cornerA, x, z, true, false);
-//            }
-//        }
+        if (Config.Data.randomColors.get() || WorldCaps.get(level).fest) setTeamColors();
 
         modifiers = new HashMap<>(); //reset it
 
