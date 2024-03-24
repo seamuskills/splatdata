@@ -76,7 +76,7 @@ public class Match {
     public boolean noMoney = false;
     public HashMap<Attribute, AttributeModifier> modifiers = new HashMap<>();
 
-    public List<PlayerTeam> scoreboardTeams;
+    public List<PlayerTeam> scoreboardTeams = new ArrayList<>();
     public String wipeoutWin = "";
     public Match(ServerPlayer p, ServerLevel l, UUID matchid){
         matchGameType = GameTypeListener.gameTypes.get("splatdata:turfwar");
