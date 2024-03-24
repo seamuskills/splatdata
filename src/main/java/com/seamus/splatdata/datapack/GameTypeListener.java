@@ -1,11 +1,8 @@
 package com.seamus.splatdata.datapack;
 
-import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.seamus.splatdata.Config;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -13,22 +10,19 @@ import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.level.storage.loot.Deserializers;
-import net.minecraftforge.registries.ForgeRegistries;
 import net.splatcraft.forge.registries.SplatcraftAttributes;
 import org.apache.logging.log4j.LogManager;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.seamus.splatdata.Config.*;
+import static com.seamus.splatdata.Config.Data;
 
 public class GameTypeListener extends SimpleJsonResourceReloadListener {
     private static final Gson gsonInstance = Deserializers.createFunctionSerializer().create();
@@ -95,6 +89,7 @@ public class GameTypeListener extends SimpleJsonResourceReloadListener {
                             break;
                         case "JUMP_STRENGTH":
                             attributes.put(Attributes.JUMP_STRENGTH, GsonHelper.getAsDouble(attributeObject, attributeString));
+                            break;
                         default:
                             LogManager.getLogger("splatdata").warn("Invalid attribute used in datapack! file: " + entry.getKey() + " attribute: " + attributeString);
                             break;

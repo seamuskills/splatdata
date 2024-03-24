@@ -14,21 +14,22 @@ import net.splatcraft.forge.util.InkColor;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class WorldInfo {
     public HashMap<UUID,Match> activeMatches = new HashMap<UUID,Match>();
     public boolean fest;
     public Level owner;
-    public ArrayList<Integer> festTeams = new ArrayList<Integer>();
+    public HashMap<String, FestTeam> festTeams = new HashMap<>();
     public BlockPos spawn = null;
     public CompoundTag writeNBT(CompoundTag compoundTag) {
 //        ListTag matchesTag = new ListTag();
 //        for (Match match : activeMatches.values()) matchesTag.add(match.writeNBT(new CompoundTag()));
 //        compoundTag.put("matches",matchesTag);
 
-        ListTag festTeamsTag = new ListTag();
-        for (int color : festTeams) festTeamsTag.add(IntTag.valueOf(color));
+        CompoundTag festTeamsTag = new CompoundTag();
+        for (Map.Entry<String, FestTeam> team : festTeams.entrySet()) festTeamsTag.put(team.getKey(), team.getValue().serialize());
         compoundTag.put("festTeams",festTeamsTag);
 
         compoundTag.putBoolean("fest", fest);
@@ -54,7 +55,7 @@ public class WorldInfo {
 
     public void readNBT(CompoundTag nbt) {
 //        ListTag MatchesTag = (ListTag)nbt.get("matches");
-        ListTag festTeamsTag = (ListTag)nbt.get("festTeams");
+        CompoundTag festTeamsTag = nbt.getCompound("festTeams");
 
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         ServerLevel level = server.getLevel(ServerLevel.OVERWORLD);
@@ -66,10 +67,8 @@ public class WorldInfo {
 //            }
 //        }
 
-        if (festTeamsTag != null){
-            festTeams = new ArrayList<Integer>();
-            for (Object festTeam : festTeamsTag.toArray()) festTeams.add((int)festTeam);
-        }
+        festTeams = new HashMap<>();
+        for (String festTeam : festTeamsTag.getAllKeys()) festTeams.put(festTeam, FestTeam.fromTag((CompoundTag) festTeamsTag.get(festTeam)));
 
         if (nbt.contains("spawn")){
             spawn = NbtUtils.readBlockPos((CompoundTag)nbt.get("spawn"));

@@ -47,6 +47,7 @@ public class Events {
         new MenuCommand(event.getDispatcher());
         new SetSpawnCommand(event.getDispatcher());
         new VoteCommand(event.getDispatcher());
+        new FestCommand(event.getDispatcher());
     }
 
     @SubscribeEvent
