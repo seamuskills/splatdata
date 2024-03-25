@@ -573,7 +573,7 @@ public class Match {
     public HashMap<String, StageData> getValidStages(){
         HashMap<String, StageData> validStages = StageDataListener.stages;
         for (Match match : WorldCaps.get(level).activeMatches.values()){
-            if (match.id == id || match.stageID.isEmpty()){continue;}
+            if (match.id == id || match.stageID.isEmpty() || match.stage.getTeamIds().isEmpty()){continue;}
             validStages.remove(match.stageID);
         }
         return validStages;
