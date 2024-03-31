@@ -39,7 +39,11 @@ public class StageDataListener extends SimpleJsonResourceReloadListener {
             }else{
                 ignoredTeams = new ArrayList<>();
             }
-            StageData data = new StageData(GsonHelper.getAsString((JsonObject) json, "id"), Component.Serializer.fromJson(json.getAsJsonObject().getAsJsonObject("author")), Component.Serializer.fromJson(json.getAsJsonObject().getAsJsonObject("displayName")), ShapedRecipe.itemStackFromJson(json.getAsJsonObject().getAsJsonObject("icon")), ignoredTeams);
+            boolean hidden = false;
+            if (json.getAsJsonObject().has("hidden")){
+                hidden = GsonHelper.getAsBoolean(json.getAsJsonObject(), "hidden");
+            }
+            StageData data = new StageData(GsonHelper.getAsString((JsonObject) json, "id"), Component.Serializer.fromJson(json.getAsJsonObject().getAsJsonObject("author")), Component.Serializer.fromJson(json.getAsJsonObject().getAsJsonObject("displayName")), ShapedRecipe.itemStackFromJson(json.getAsJsonObject().getAsJsonObject("icon")), ignoredTeams, hidden);
             stages.put(data.id, data);
         }
     }

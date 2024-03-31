@@ -26,13 +26,15 @@ public class StageData{
     public Component author;
     public Component displayName;
     public ItemStack icon;
+    public boolean hidden;
 
     public ArrayList<String> ignoreTeams;
-    public StageData(String id, Component author, Component displayName, ItemStack icon, ArrayList<String> ignoreTeams){
+    public StageData(String id, Component author, Component displayName, ItemStack icon, ArrayList<String> ignoreTeams, boolean hidden){
         this.id = id;
         this.author = author;
         this.displayName = displayName;
         this.icon = icon;
         this.ignoreTeams = ignoreTeams;
+        this.hidden = hidden;
     }
 }
