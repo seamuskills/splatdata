@@ -33,6 +33,7 @@ public class Config {
         public static ForgeConfigSpec.BooleanValue forceInkTanks;
         public static ForgeConfigSpec.IntValue cashPayout;
         public static ForgeConfigSpec.IntValue winBonus;
+        public static ForgeConfigSpec.BooleanValue forceFestInk;
         public static void init(ForgeConfigSpec.Builder builder){
             respawnTime = builder.comment("How long the respawn time is (in seconds) used when a player is not in a match").defineInRange("splatdata.respawn.respawntime", 7.0f ,0.0d, Double.MAX_VALUE);
             matchTime = builder.comment("How long (in seconds) a match should last when the game type doesn't specify").defineInRange("splatdata.match.matchTime", 180, 1, Double.MAX_VALUE);
@@ -43,6 +44,7 @@ public class Config {
             forceInkTanks = builder.comment("Whether to force the players to wear an ink tank").define("splatdata.misc.forceInkTanks", true);
             cashPayout = builder.comment("The amount of cash awarded to a player when they finish a match").defineInRange("splatdata.match.payout", 10, 0, Integer.MAX_VALUE);
             winBonus = builder.comment("The amount of extra cash a player will get for winning a match").defineInRange("splatdata.match.winBonus", 5, 0, Integer.MAX_VALUE);
+            forceFestInk = builder.comment("Whether or not splatfest bands are forced into the inventory of all players for the duration of a splatfest, this will make them all paint with sparkly ink!").define("splatdata.misc.forceSplatfestInk", true);
         }
     }
 }
