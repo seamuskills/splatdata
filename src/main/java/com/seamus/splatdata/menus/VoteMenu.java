@@ -30,7 +30,13 @@ public class VoteMenu extends MultiPageMenu{
             Capabilities.get(player).vote = "Random"; player.closeContainer();
             player.sendMessage(new TextComponent("map vote set to choose randomly"), player.getUUID());
         }));
+
+        boolean permission = originPlayer.hasPermissions(3);
+
         for (StageData stage : StageDataListener.stages.values()){
+            if (stage.hidden && !permission){
+                continue;
+            }
             ItemStack icon = stage.icon.copy();
             if (Objects.equals(Capabilities.get(originPlayer).vote, stage.id)){
                 icon.enchant(Enchantments.MENDING, 1);

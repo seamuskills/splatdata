@@ -8,21 +8,19 @@ import com.seamus.splatdata.datapack.StageDataListener;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
-import net.minecraft.network.chat.*;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.bossevents.CustomBossEvent;
 import net.minecraft.server.bossevents.CustomBossEvents;
-import net.minecraft.server.commands.TeamCommand;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.BossEvent;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
@@ -41,14 +39,13 @@ import net.splatcraft.forge.data.capabilities.saveinfo.SaveInfoCapability;
 import net.splatcraft.forge.items.remotes.ColorChangerItem;
 import net.splatcraft.forge.items.remotes.InkDisruptorItem;
 import net.splatcraft.forge.items.remotes.TurfScannerItem;
-import net.splatcraft.forge.registries.SplatcraftCommands;
 import net.splatcraft.forge.tileentities.SpawnPadTileEntity;
 import net.splatcraft.forge.util.ColorUtils;
 import org.apache.logging.log4j.LogManager;
 
 import java.awt.*;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.logging.Logger;
 
 public class Match {
@@ -624,7 +621,6 @@ public class Match {
         if (Config.Data.randomColors.get() || WorldCaps.get(level).fest) setTeamColors();
 
         modifiers = new HashMap<>(); //reset it
-
         int teamAssign = 0;
         for (ServerPlayer player : getPlayerList(true)) {
             CapInfo caps = Capabilities.get(player);
