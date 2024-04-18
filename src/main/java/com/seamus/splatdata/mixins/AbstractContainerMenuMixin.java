@@ -1,8 +1,10 @@
 package com.seamus.splatdata.mixins;
 
 import com.seamus.splatdata.menus.MenuContainer;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.*;
+import net.minecraft.world.level.GameType;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -16,6 +18,11 @@ public class AbstractContainerMenuMixin {
         if (player.level.isClientSide){
             return;
         }
+
+        if (player.getSlot(slot).get().getOrCreateTag().getBoolean("splatdata.forced") && ((ServerPlayer)player).gameMode.getGameModeForPlayer() != GameType.CREATIVE){
+            ci.cancel();
+        }
+
         MenuContainer container = null;
         AbstractContainerMenu self = (AbstractContainerMenu)(Object)this;
 

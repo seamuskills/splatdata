@@ -14,6 +14,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -149,10 +150,21 @@ public class Events {
             Set<Item> jrWeapons = new HashSet<>();
             jrWeapons.add(SplatcraftItems.splattershotJr.get());
             jrWeapons.add(SplatcraftItems.kensaSplattershotJr.get());
-            if (event.player.getInventory().hasAnyOf(jrWeapons) && !event.player.getInventory().getItem(102).sameItem(new ItemStack(SplatcraftItems.inkTankJr.get()))){
-                event.player.getInventory().setItem(102, new ItemStack(SplatcraftItems.inkTankJr.get()));
-            }else if (!event.player.getInventory().getItem(102).sameItem(new ItemStack(SplatcraftItems.inkTank.get()))){
-                event.player.getInventory().setItem(102, new ItemStack(SplatcraftItems.classicInkTank.get()));
+            ItemStack jrtank = new ItemStack(SplatcraftItems.inkTankJr.get());
+            jrtank.getOrCreateTag().putBoolean("splatdata.forced", true);
+            ItemStack tank = new ItemStack(SplatcraftItems.classicInkTank.get());
+            tank.getOrCreateTag().putBoolean("splatdata.forced", true);
+            boolean jr = false;
+            for (Item jrWeapon : jrWeapons){
+                if (event.player.getMainHandItem().sameItem(new ItemStack(jrWeapon))){
+                    jr = true;
+                }
+            }
+            if (jr){ //if statements have to be separate so that already having a jr tank doesn't cause the else condition
+                if (!event.player.getSlot(102).get().sameItem(jrtank))
+                    event.player.setItemSlot(Mob.getEquipmentSlotForItem(jrtank), jrtank);
+            }else if (!event.player.getSlot(102).get().sameItem(tank)){
+                event.player.setItemSlot(Mob.getEquipmentSlotForItem(tank), tank);
             }
         }
         if (Capabilities.hasCapability(event.player)){

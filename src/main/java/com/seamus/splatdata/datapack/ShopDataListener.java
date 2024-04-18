@@ -27,7 +27,16 @@ public class ShopDataListener extends SimpleJsonResourceReloadListener {
     protected void apply(Map<ResourceLocation, JsonElement> resourceLocationJsonElementMap, @NotNull ResourceManager resourceManager, @NotNull ProfilerFiller profilerFiller) {
         shopItems.clear();
         for (Map.Entry<ResourceLocation, JsonElement> json: resourceLocationJsonElementMap.entrySet()){
-            shopItems.add(new ShopItem(ShapedRecipe.itemStackFromJson(json.getValue().getAsJsonObject().getAsJsonObject("reward")), GsonHelper.getAsInt((JsonObject) json.getValue(), "cost"), json.getKey()));
+            boolean force = true;
+            int slot = 0;
+            if (json.getValue().getAsJsonObject().has("force")){
+                force = GsonHelper.getAsBoolean(json.getValue().getAsJsonObject(), "force");
+            }
+            if (json.getValue().getAsJsonObject().has("slot")){
+                slot = GsonHelper.getAsInt(json.getValue().getAsJsonObject(), "slot");
+            }
+
+            shopItems.add(new ShopItem(ShapedRecipe.itemStackFromJson(json.getValue().getAsJsonObject().getAsJsonObject("reward")), GsonHelper.getAsInt((JsonObject) json.getValue(), "cost"), json.getKey(), force, slot));
         }
     }
 }

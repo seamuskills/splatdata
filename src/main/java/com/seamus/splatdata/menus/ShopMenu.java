@@ -28,7 +28,9 @@ public class ShopMenu  extends MultiPageMenu{
         for (ShopItem item : ShopDataListener.shopItems){
             if (!Capabilities.get(player).unlockedWeapons.contains(item.id)) {
                 MutableComponent name = item.item.getHoverName().copy().append(new TextComponent(", $" + item.cost));
-                buttonsList.add(new FunctionButton(SplatcraftData.applyLore(item.item.copy(), new TextComponent("Click to attempt purchase")), name, (p) -> {
+                ItemStack displayItem = item.item.copy();
+                displayItem.getOrCreateTag().putBoolean("splatdata.forced", false);
+                buttonsList.add(new FunctionButton(SplatcraftData.applyLore(displayItem, new TextComponent("Click to attempt purchase")), name, (p) -> {
                     if (ShopMenu.purchase(p, item)){
                         p.sendMessage(new TextComponent("Item purchased!").withStyle(ChatFormatting.GREEN), p.getUUID());
                     }else{
@@ -38,8 +40,10 @@ public class ShopMenu  extends MultiPageMenu{
                 }));
             }else{
                 MutableComponent name = item.item.getHoverName().copy();
-                buttonsList.add(new FunctionButton(SplatcraftData.applyLore(item.item.copy(), new TextComponent("You own this item, click to grab it at no cost")), name, (p) -> {
-                    p.getInventory().setItem(0, item.item.copy());
+                ItemStack displayItem = item.item.copy();
+                displayItem.getOrCreateTag().putBoolean("splatdata.forced", false);
+                buttonsList.add(new FunctionButton(SplatcraftData.applyLore(displayItem, new TextComponent("You own this item, click to grab it at no cost")), name, (p) -> {
+                    p.getInventory().setItem(item.slot, item.item.copy());
                     p.closeContainer();
                 }));
             }

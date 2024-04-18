@@ -6,6 +6,7 @@
   "refmap": "splatdata.refmap.json",
   "mixins": [
     "AbstractContainerMenuMixin",
+    "ArmorSlotMixin",
     "DispenserAccessor",
     "HopperAccessor"
   ],
