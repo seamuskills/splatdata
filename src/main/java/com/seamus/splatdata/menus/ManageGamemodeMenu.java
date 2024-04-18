@@ -1,21 +1,17 @@
 package com.seamus.splatdata.menus;
 
-import com.seamus.splatdata.Capabilities;
+import com.seamus.splatdata.capabilities.Capabilities;
 import com.seamus.splatdata.Match;
 import com.seamus.splatdata.SplatcraftData;
-import com.seamus.splatdata.WorldCaps;
+import com.seamus.splatdata.capabilities.WorldCaps;
 import com.seamus.splatdata.datapack.GameTypeListener;
 import com.seamus.splatdata.datapack.MatchGameType;
 import com.seamus.splatdata.menus.buttons.FunctionButton;
 import com.seamus.splatdata.menus.buttons.MenuButton;
 import net.minecraft.ChatFormatting;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 
 import java.util.ArrayList;
 

@@ -1,24 +1,22 @@
-package com.seamus.splatdata;
+package com.seamus.splatdata.capabilities;
 
+import com.seamus.splatdata.FestTeam;
+import com.seamus.splatdata.Match;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.IntTag;
-import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.server.ServerLifecycleHooks;
-import net.splatcraft.forge.util.InkColor;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 public class WorldInfo {
-    public HashMap<UUID,Match> activeMatches = new HashMap<UUID,Match>();
+    public HashMap<UUID, Match> activeMatches = new HashMap<UUID,Match>();
     public boolean fest;
     public Level owner;
     public HashMap<String, FestTeam> festTeams = new HashMap<>();

@@ -1,10 +1,13 @@
 package com.seamus.splatdata.commands;
 
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.seamus.splatdata.*;
+import com.seamus.splatdata.capabilities.CapInfo;
+import com.seamus.splatdata.capabilities.Capabilities;
+import com.seamus.splatdata.capabilities.WorldCaps;
+import com.seamus.splatdata.capabilities.WorldInfo;
 import com.seamus.splatdata.menus.ManageMenu;
 import com.seamus.splatdata.menus.PasswordMenu;
 import com.seamus.splatdata.menus.RoomMenuJoin;
@@ -20,7 +23,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.server.ServerLifecycleHooks;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
 public class RoomCommand {

@@ -1,4 +1,4 @@
-package com.seamus.splatdata;
+package com.seamus.splatdata.capabilities;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;

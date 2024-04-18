@@ -1,7 +1,7 @@
 package com.seamus.splatdata.menus;
 
-import com.seamus.splatdata.Capabilities;
-import com.seamus.splatdata.CapInfo;
+import com.seamus.splatdata.capabilities.Capabilities;
+import com.seamus.splatdata.capabilities.CapInfo;
 import com.seamus.splatdata.SplatcraftData;
 import com.seamus.splatdata.commands.RoomCommand;
 import com.seamus.splatdata.menus.buttons.FunctionButton;

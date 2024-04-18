@@ -1,6 +1,9 @@
 package com.seamus.splatdata.menus;
 
 import com.seamus.splatdata.*;
+import com.seamus.splatdata.capabilities.Capabilities;
+import com.seamus.splatdata.capabilities.WorldCaps;
+import com.seamus.splatdata.capabilities.WorldInfo;
 import com.seamus.splatdata.menus.buttons.FunctionButton;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.level.ServerPlayer;

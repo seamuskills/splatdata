@@ -1,7 +1,7 @@
 package com.seamus.splatdata.commands;
 
 import com.mojang.brigadier.CommandDispatcher;
-import com.seamus.splatdata.WorldCaps;
+import com.seamus.splatdata.capabilities.WorldCaps;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.coordinates.BlockPosArgument;

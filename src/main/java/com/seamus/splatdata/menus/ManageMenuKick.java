@@ -1,16 +1,14 @@
 package com.seamus.splatdata.menus;
 
-import com.seamus.splatdata.CapInfo;
-import com.seamus.splatdata.Capabilities;
+import com.seamus.splatdata.capabilities.CapInfo;
+import com.seamus.splatdata.capabilities.Capabilities;
 import com.seamus.splatdata.SplatcraftData;
-import com.seamus.splatdata.WorldCaps;
-import com.seamus.splatdata.commands.RoomCommand;
+import com.seamus.splatdata.capabilities.WorldCaps;
 import com.seamus.splatdata.menus.buttons.FunctionButton;
 import com.seamus.splatdata.menus.buttons.MenuButton;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 

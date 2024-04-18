@@ -1,8 +1,9 @@
-package com.seamus.splatdata;
+package com.seamus.splatdata.capabilities;
 
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.capabilities.CapabilityToken;
@@ -12,13 +13,13 @@ import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class Capabilities implements ICapabilityProvider, INBTSerializable<CompoundTag>
+public class WorldCaps implements ICapabilityProvider, INBTSerializable<CompoundTag>
 {
-    public static Capability<CapInfo> CAPABILITY = CapabilityManager.get(new CapabilityToken<>() {});
+    public static Capability<WorldInfo> CAPABILITY = CapabilityManager.get(new CapabilityToken<>() {});
 
-    private CapInfo CapInfo = null;
-    private final LazyOptional<CapInfo> opt = LazyOptional.of(() ->
-            CapInfo == null ? (CapInfo = new CapInfo()) : CapInfo);
+    private WorldInfo WorldInfo = null;
+    private final LazyOptional<WorldInfo> opt = LazyOptional.of(() ->
+            WorldInfo == null ? (WorldInfo = new WorldInfo()) : WorldInfo);
 
     @NotNull
     @Override
@@ -27,10 +28,14 @@ public class Capabilities implements ICapabilityProvider, INBTSerializable<Compo
         return cap == CAPABILITY ? opt.cast() : LazyOptional.empty();
     }
 
-    public static CapInfo get(LivingEntity entity)
+    public static WorldInfo get(Level level)
     {
-        return entity.getCapability(CAPABILITY).orElseThrow(IllegalStateException::new);
+        return level.getCapability(CAPABILITY).orElseThrow(IllegalStateException::new);
     }
+
+//    public static WorldInfo get(MinecraftServer server){
+//        return get(server.getLevel(Level.OVERWORLD));
+//    }
 
     @Override
     public CompoundTag serializeNBT() {
@@ -51,17 +56,17 @@ public class Capabilities implements ICapabilityProvider, INBTSerializable<Compo
 
 /* implements ICapabilitySerializable<CompoundTag>
 {
-    @CapabilityInject(CapInfo.class)
-    public static final Capability<CapInfo> CAPABILITY = null;
-    private static final CapInfo DEFAULT = new CapInfo(SplatcraftInkColors.undyed.getColor());
-    private final LazyOptional<CapInfo> instance = LazyOptional.of(CAPABILITY::getDefaultInstance);
+    @CapabilityInject(WorldInfo.class)
+    public static final Capability<WorldInfo> CAPABILITY = null;
+    private static final WorldInfo DEFAULT = new WorldInfo(SplatcraftInkColors.undyed.getColor());
+    private final LazyOptional<WorldInfo> instance = LazyOptional.of(CAPABILITY::getDefaultInstance);
 
     public static void register(RegisterCapabilitiesEvent event)
     {
-        event.register(CapInfo.class);
+        event.register(WorldInfo.class);
     }
 
-    public static CapInfo get(LivingEntity entity) throws NullPointerException
+    public static WorldInfo get(LivingEntity entity) throws NullPointerException
     {
         return entity.getCapability(CAPABILITY).orElse(null);
     }
@@ -98,3 +103,4 @@ public class Capabilities implements ICapabilityProvider, INBTSerializable<Compo
         CAPABILITY.getStorage().readNBT(CAPABILITY, instance.orElseThrow(() -> new IllegalArgumentException("LazyOptional cannot be empty!")), null, nbt);
     }
 } */
+

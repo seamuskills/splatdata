@@ -1,17 +1,14 @@
 package com.seamus.splatdata.menus;
 
-import com.seamus.splatdata.Capabilities;
+import com.seamus.splatdata.capabilities.Capabilities;
 import com.seamus.splatdata.datapack.ColorListener;
 import com.seamus.splatdata.menus.buttons.FunctionButton;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.splatcraft.forge.items.FilterItem;
 import net.splatcraft.forge.registries.SplatcraftItems;
 import net.splatcraft.forge.util.ColorUtils;
-
-import java.awt.*;
 
 public class PrefColorMenu extends MenuContainer{
     ItemStack filter;

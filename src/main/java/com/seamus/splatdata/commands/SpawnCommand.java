@@ -2,6 +2,10 @@ package com.seamus.splatdata.commands;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.seamus.splatdata.*;
+import com.seamus.splatdata.capabilities.CapInfo;
+import com.seamus.splatdata.capabilities.Capabilities;
+import com.seamus.splatdata.capabilities.WorldCaps;
+import com.seamus.splatdata.capabilities.WorldInfo;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;

@@ -1,8 +1,8 @@
 package com.seamus.splatdata.commands;
 
 import com.mojang.brigadier.CommandDispatcher;
-import com.seamus.splatdata.CapInfo;
-import com.seamus.splatdata.Capabilities;
+import com.seamus.splatdata.capabilities.CapInfo;
+import com.seamus.splatdata.capabilities.Capabilities;
 import com.seamus.splatdata.menus.PrefColorMenu;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;

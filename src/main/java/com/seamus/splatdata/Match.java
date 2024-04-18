@@ -1,5 +1,8 @@
 package com.seamus.splatdata;
 
+import com.seamus.splatdata.capabilities.CapInfo;
+import com.seamus.splatdata.capabilities.Capabilities;
+import com.seamus.splatdata.capabilities.WorldCaps;
 import com.seamus.splatdata.commands.SpawnCommand;
 import com.seamus.splatdata.datapack.GameTypeListener;
 import com.seamus.splatdata.datapack.MatchGameType;
