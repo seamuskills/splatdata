@@ -665,4 +665,20 @@ public class Match {
     public boolean playerInvolved(Player player){
         return players.contains(player.getUUID());
     }
+//todo make the wins decided by the points system. rework the display of who won and display what teams are involved in the intro. Make fest games count towards the fest team and make the team colors coordinated with the fest.
+    protected static class MatchTeam{
+        String stageteam = "[team id not properly set]"; //the id of the team within the stage
+        String name = "<unknown team>"; //the displayed name of the team, only different from stageteam if festTeam is not null
+        int color = 0; //ink color of the team
+        int points = 0; //how many points this team has for the purposes of deciding who wins
+        FestTeam festTeam; //what splatfest team this team belongs to if it does. Null means no fest participation.
+        Match owner; //what match owns this?
+        public MatchTeam(String stageteam, FestTeam festTeam, int color, Match owner){
+            this.stageteam = stageteam;
+            name = festTeam == null ? stageteam : festTeam.id; //set the team name to the fest team name if possible otherwise it should be specified by the stage
+            this.festTeam = festTeam;
+            this.owner = owner;
+            this.color = color;
+        }
+    }
 }
