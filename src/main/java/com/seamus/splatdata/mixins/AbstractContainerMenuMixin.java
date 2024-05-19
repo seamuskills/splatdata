@@ -19,10 +19,6 @@ public class AbstractContainerMenuMixin {
             return;
         }
 
-        if (player.getSlot(slot).get().getOrCreateTag().getBoolean("splatdata.forced") && ((ServerPlayer)player).gameMode.getGameModeForPlayer() != GameType.CREATIVE){
-            ci.cancel();
-        }
-
         MenuContainer container = null;
         AbstractContainerMenu self = (AbstractContainerMenu)(Object)this;
 
@@ -35,6 +31,9 @@ public class AbstractContainerMenuMixin {
         }
 
         if (container == null){
+            if (player.getSlot(slot).get().getOrCreateTag().getBoolean("splatdata.forced") && ((ServerPlayer)player).gameMode.getGameModeForPlayer() != GameType.CREATIVE){
+                ci.cancel();
+            }
             return;
         }
         if (clickType != ClickType.PICKUP || slot >= container.getContainerSize()){
