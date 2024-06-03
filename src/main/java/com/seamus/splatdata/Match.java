@@ -3,6 +3,7 @@ package com.seamus.splatdata;
 import com.seamus.splatdata.capabilities.CapInfo;
 import com.seamus.splatdata.capabilities.Capabilities;
 import com.seamus.splatdata.capabilities.WorldCaps;
+import com.seamus.splatdata.capabilities.WorldInfo;
 import com.seamus.splatdata.commands.SpawnCommand;
 import com.seamus.splatdata.datapack.GameTypeListener;
 import com.seamus.splatdata.datapack.MatchGameType;
@@ -33,6 +34,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Team;
+import net.minecraftforge.common.util.WorldCapabilityData;
 import net.minecraftforge.common.world.ForgeChunkManager;
 import net.minecraftforge.server.ServerLifecycleHooks;
 import net.splatcraft.forge.blocks.SpawnPadBlock;
@@ -45,6 +47,7 @@ import net.splatcraft.forge.items.remotes.TurfScannerItem;
 import net.splatcraft.forge.tileentities.SpawnPadTileEntity;
 import net.splatcraft.forge.util.ColorUtils;
 import org.apache.logging.log4j.LogManager;
+import org.openjdk.nashorn.internal.runtime.regexp.joni.exception.ValueException;
 
 import java.awt.*;
 import java.util.List;
@@ -58,7 +61,7 @@ public class Match {
     public int cutsceneTime = -1;
     public Stage stage;
     public ArrayList<UUID> players;
-    public List<String> teams;
+    public List<MatchTeam> teams;
     public UUID id;
 
     public String stageID;
@@ -96,12 +99,12 @@ public class Match {
         this( p, l, UUID.randomUUID());
     }
 
-    public int teamCount(String team){
+    public int teamCount(MatchTeam team){
         if (!teams.contains(team) || stage == null){
             LogManager.getLogger("splatdata").warn("Invalid team or stage when attempting to get team count...");
             return 0;
         }else{
-            return getPlayerList().stream().filter((p) -> ColorUtils.getPlayerColor(p) == stage.getTeamColor(team)).toArray().length;
+            return getPlayerList().stream().filter((p) -> ColorUtils.getPlayerColor(p) == team.color).toArray().length;
         }
     }
 
@@ -135,12 +138,30 @@ public class Match {
     public boolean setStage(String stageid){
         SaveInfo saveInfo = SaveInfoCapability.get(level.getServer());
         if (saveInfo.getStages().containsKey(stageid)){
+            WorldInfo worldData = WorldCaps.get(level);
             stageID = stageid;
+
+            String[] stageTeams = stage.getTeamIds().toArray(new String[0]); //get stage teams
+            //filter out teams set to be ignored
+            stageTeams = (String[]) new ArrayList<>(Arrays.asList(stageTeams)).stream().filter(StageDataListener.stages.get(stageID).ignoreTeams::contains).toArray();
+            teams = new ArrayList<>();
+
+            if (WorldCaps.get(level).fest){ //is a splatfest happening?
+                int teamIndex = 0;
+                for (FestTeam team : worldData.festTeams.values()){
+                    //create a match team for each fest team
+                    teams.add(new MatchTeam(stageTeams[teamIndex], team, team.color, this));
+                    teamIndex++;
+                }
+            }else{ //otherwise generate teams based on the stage.
+                for (String team : stageTeams){
+                    teams.add(new MatchTeam(team, null, 0, this)); //color 0 will be set later
+                }
+            }
+
             stage = saveInfo.getStages().get(stageID);
-            teams = new ArrayList<>(stage.getTeamIds());
-            teams.removeIf(StageDataListener.stages.get(stageID).ignoreTeams::contains);
             scoreboardTeams = new ArrayList<>();
-            for (String t : teams){
+            for (MatchTeam t : teams){
                 PlayerTeam team = ServerLifecycleHooks.getCurrentServer().getScoreboard().addPlayerTeam("splatdata:" + t + "(match:" + id + ")");
                 team.setDeathMessageVisibility(Team.Visibility.NEVER);
                 team.setNameTagVisibility(Team.Visibility.HIDE_FOR_OTHER_TEAMS);
@@ -167,14 +188,23 @@ public class Match {
 
     public void setTeamColors(){
         float offset = level.random.nextFloat();
-        for (int teamIndex = 0; teamIndex < teams.size(); teamIndex++){
-            float h = (teamIndex / (float)teams.size()); // (index / number of teams + 1) divide hue evenly between teams, add 1 to number of teams so the 2 outer most teams in the color space can't overlap.
-            int color = Color.HSBtoRGB((offset + h) % 1, 1, 1);
-            color &= 0x00ffffff; //cause the color it returns has an extra FF at the beginning
-            color = Math.floorMod(color, 0xffffff);
-            //Level level, BlockPos from, BlockPos to, int color, int mode, int affectedColor, String stage, String affectedTeam
-            ColorChangerItem.replaceColor(level, stage.cornerA, stage.cornerB, color, 1, stage.getTeamColor(teams.get(teamIndex)), stageID, teams.get(teamIndex));
-            //stage.setTeamColor(teams.get(teamIndex), color);
+        if (WorldCaps.get(level).fest){
+            for (MatchTeam team : teams){
+                ColorChangerItem.replaceColor(level, stage.cornerA, stage.cornerB, team.color, 1, stage.getTeamColor(team.stageteam), stageID, team.stageteam);
+            }
+        }else {
+            int teamIndex = 0;
+            for (MatchTeam team : teams) {
+                float h = (teamIndex / (float) teams.size()); // (index / number of teams + 1) divide hue evenly between teams, add 1 to number of teams so the 2 outer most teams in the color space can't overlap.
+                int color = Color.HSBtoRGB((offset + h) % 1, 1, 1);
+                color &= 0x00ffffff; //cause the color it returns has an extra FF at the beginning
+                color = Math.floorMod(color, 0xffffff);
+                team.color = color;
+                //Level level, BlockPos from, BlockPos to, int color, int mode, int affectedColor, String stage, String affectedTeam
+                ColorChangerItem.replaceColor(level, stage.cornerA, stage.cornerB, color, 1, stage.getTeamColor(team.stageteam), stageID, team.stageteam);
+                //stage.setTeamColor(teams.get(teamIndex), color);
+                teamIndex++;
+            }
         }
     }
 
@@ -227,9 +257,9 @@ public class Match {
     private void gameplay(){
         //wave respawn code
         if (matchGameType.rMode == MatchGameType.respawnMode.wave || matchGameType.rMode == MatchGameType.respawnMode.waveOrTimed) {
-            for (String t : teams) {
+            for (MatchTeam t : teams) {
                 List<ServerPlayer> p = getPlayerList();
-                p.removeIf((player) -> ColorUtils.getPlayerColor(player) != stage.getTeamColor(t)); //remove all non-team members
+                p.removeIf((player) -> ColorUtils.getPlayerColor(player) != t.color); //remove all non-team members
                 List<ServerPlayer> dead = p.stream().filter((player) -> Capabilities.get(player).respawnTimeTicks >= 0).toList(); //get all dead players
                 p.removeIf((player) -> Capabilities.get(player).respawnTimeTicks >= 0); //remove all dead players from the list doing the initial check
                 if (p.isEmpty()) {
@@ -244,16 +274,16 @@ public class Match {
             }
         }
         if (matchGameType.rMode == MatchGameType.respawnMode.disabled && teams.size() > 1){
-            ArrayList<String> aliveTeams = new ArrayList<>(); //all teams that are alive
+            ArrayList<MatchTeam> aliveTeams = new ArrayList<>(); //all teams that are alive
             List<ServerPlayer> players = getPlayerList(); //query this once so the function only has to run once...
-            for (String t : teams){
-                List<ServerPlayer> teamPlayers = players.stream().filter((player) -> ColorUtils.getPlayerColor(player) == stage.getTeamColor(t)).toList(); //get all players on this team
+            for (MatchTeam t : teams){
+                List<ServerPlayer> teamPlayers = players.stream().filter((player) -> ColorUtils.getPlayerColor(player) == t.color).toList(); //get all players on this team
                 if (teamPlayers.stream().filter((player) -> Capabilities.get(player).respawnTimeTicks <= 0).toArray().length > 0){ //see if there are any alive players
                     aliveTeams.add(t);
                 }
             }
             if (aliveTeams.size() == 1){
-                wipeoutWin = aliveTeams.get(0);
+                wipeoutWin = aliveTeams.get(0).name;
                 timeLeft = 1;
             }else if (aliveTeams.isEmpty()) {
                 wipeoutWin = "nobody wins"; //technically this breaks if there is a team called "nobody wins" but who the hell is gonna name a team that???
@@ -298,15 +328,15 @@ public class Match {
                 case splats:
                     splatWinner = "Tie!";
                     int highest = 0;
-                    for (String t : teams){
+                    for (MatchTeam t : teams){
                         List<ServerPlayer> players = getPlayerList();
-                        players.removeIf((p) -> ColorUtils.getPlayerColor(p) != stage.getTeamColor(t)); //todo fix, null error donno why
+                        players.removeIf((p) -> ColorUtils.getPlayerColor(p) != t.color); //todo fix, null error donno why
                         int splatCount = 0;
                         for (Player p : players){
                             splatCount += Capabilities.get(p).matchSplats;
                         }
                         if (splatCount > highest){
-                            splatWinner = t;
+                            splatWinner = t.name;
                             highest = splatCount;
                         }else if (splatCount == highest){
                             splatWinner = "Tie!";
@@ -451,16 +481,16 @@ public class Match {
                 Vec3 position = players.get(p.level.random.nextInt(players.size())).position();
                 p.teleportTo(position.x, position.y, position.z); //stupid that it doesn't take vec3 directly...
             }else{
-                String leastTeam = null;
+                MatchTeam leastTeam = null;
                 int teamLeast = Integer.MAX_VALUE;
-                for (String team : teams){
+                for (MatchTeam team : teams){
                     if (teamCount(team) <= teamLeast){
                         leastTeam = team;
                         teamLeast = teamCount(team);
                     }
-                    System.out.println(team + teamCount(team));
+                    //System.out.println(team.name + teamCount(team));
                 }
-                ColorUtils.setPlayerColor(p, stage.getTeamColor(leastTeam));
+                ColorUtils.setPlayerColor(p, leastTeam.color);
                 PlayerTeam scoreTeam = ServerLifecycleHooks.getCurrentServer().getScoreboard().getPlayersTeam("splatdata:" + leastTeam + "(match:" + id + ")");
                 if (scoreTeam != null) ServerLifecycleHooks.getCurrentServer().getScoreboard().addPlayerToTeam(p.getStringUUID(), scoreTeam);
                 Collection<ServerPlayer> playerForWarp = new ArrayList<>();
@@ -474,6 +504,31 @@ public class Match {
             }
         }
         players.add(p.getUUID());
+    }
+
+    public void assignTeam(ServerPlayer player){
+        WorldInfo worldInfo = WorldCaps.get(level);
+        if (!Capabilities.hasCapability(player)) throw new ValueException("Player has no capabilities!");
+        CapInfo playerInfo = Capabilities.get(player);
+        if (worldInfo.fest){
+            FestTeam festTeam = worldInfo.festTeams.get(playerInfo.festTeam);
+            ColorUtils.setPlayerColor(player, festTeam.color);
+            PlayerTeam scoreTeam = ServerLifecycleHooks.getCurrentServer().getScoreboard().getPlayersTeam("splatdata:" + festTeam.id + "(match:" + id + ")");
+            if (scoreTeam != null) ServerLifecycleHooks.getCurrentServer().getScoreboard().addPlayerToTeam(player.getStringUUID(), scoreTeam);
+        }else{
+            MatchTeam leastTeam = null;
+            int teamLeast = Integer.MAX_VALUE;
+            for (MatchTeam team : teams){
+                if (teamCount(team) <= teamLeast){
+                    leastTeam = team;
+                    teamLeast = teamCount(team);
+                }
+                //System.out.println(team.name + teamCount(team));
+            }
+            ColorUtils.setPlayerColor(player, leastTeam.color);
+            PlayerTeam scoreTeam = ServerLifecycleHooks.getCurrentServer().getScoreboard().getPlayersTeam("splatdata:" + leastTeam + "(match:" + id + ")");
+            if (scoreTeam != null) ServerLifecycleHooks.getCurrentServer().getScoreboard().addPlayerToTeam(player.getStringUUID(), scoreTeam);
+        }
     }
 
     public void stalk(ServerPlayer p){
@@ -634,7 +689,7 @@ public class Match {
                 case notReady:
                     throw new RuntimeException("Someone was not ready!");
                 case ready:
-                    caps.team = teams.get(teamAssign);
+                    caps.team = teams.get(teamAssign).name;
                     PlayerTeam scoreTeam = ServerLifecycleHooks.getCurrentServer().getScoreboard().getPlayersTeam("splatdata:" + teamAssign + "(match:" + id + ")");
                     if (scoreTeam != null) ServerLifecycleHooks.getCurrentServer().getScoreboard().addPlayerToTeam(player.getStringUUID(), scoreTeam);
                     teamAssign = (teamAssign + 1) % teams.size();
@@ -665,8 +720,8 @@ public class Match {
     public boolean playerInvolved(Player player){
         return players.contains(player.getUUID());
     }
-//todo make the wins decided by the points system. rework the display of who won and display what teams are involved in the intro. Make fest games count towards the fest team and make the team colors coordinated with the fest.
-    protected static class MatchTeam{
+    //todo make the wins decided by the points system. rework the display of who won and display what teams are involved in the intro. Make fest games count towards the fest team and make the team colors coordinated with the fest.
+    public static class MatchTeam{
         String stageteam = "[team id not properly set]"; //the id of the team within the stage
         String name = "<unknown team>"; //the displayed name of the team, only different from stageteam if festTeam is not null
         int color = 0; //ink color of the team
