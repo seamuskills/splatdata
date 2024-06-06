@@ -16,4 +16,9 @@ Here is a list of functions this mod provides:
 * Splatfest features
 * Possibly more features in the future!
 
+# Requirements
+* ### Splatcraft
+* ### Some server side setup
+* ### You having fun ;)
+
 This mod is about 60% complete as of writing this (6/6/24), there is only one developer (me) working on this, so please have some patience :)
